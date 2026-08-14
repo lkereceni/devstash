@@ -21,3 +21,4 @@ Not Started
 <!-- Keep this updated. Earliest to latest -->
 
 - Project setup and boilerplate cleanup
+- Initial Next.js 16 + Tailwind CSS v4 setup (App Router, TypeScript strict); committed and pushed to GitHub
