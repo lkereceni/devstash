@@ -16,7 +16,7 @@ import type { ItemType } from "@/lib/mock-data";
  * Item types are data (custom types are a Pro feature), so the icon arrives
  * as a string and has to be resolved at render time.
  */
-const ITEM_TYPE_ICONS: Record<string, LucideIcon> = {
+export const ITEM_TYPE_ICONS: Record<string, LucideIcon> = {
   Code,
   File,
   FileText,
@@ -25,10 +25,6 @@ const ITEM_TYPE_ICONS: Record<string, LucideIcon> = {
   Sparkles,
   Terminal,
 };
-
-export function getItemTypeIcon(iconName: string): LucideIcon {
-  return ITEM_TYPE_ICONS[iconName] ?? File;
-}
 
 /** Route for an item type listing, e.g. Snippets -> /items/snippets. */
 export function getItemTypeHref(type: ItemType): string {

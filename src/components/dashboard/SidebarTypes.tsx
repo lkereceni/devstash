@@ -3,8 +3,8 @@
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { CSSProperties } from "react";
 
+import { ItemTypeIcon } from "@/components/dashboard/ItemTypeIcon";
 import {
   Collapsible,
   CollapsibleContent,
@@ -19,7 +19,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { getItemTypeHref, getItemTypeIcon } from "@/lib/item-types";
+import { getItemTypeHref } from "@/lib/item-types";
 import { itemTypes } from "@/lib/mock-data";
 
 export function SidebarTypes() {
@@ -41,7 +41,6 @@ export function SidebarTypes() {
           <SidebarGroupContent>
             <SidebarMenu>
               {itemTypes.map((type) => {
-                const Icon = getItemTypeIcon(type.icon);
                 const href = getItemTypeHref(type);
 
                 return (
@@ -52,12 +51,9 @@ export function SidebarTypes() {
                       tooltip={`${type.name} (${type.itemCount})`}
                     >
                       <Link href={href}>
-                        <Icon
-                          aria-hidden
-                          className="text-(--type-color)"
-                          style={
-                            { "--type-color": type.color } as CSSProperties
-                          }
+                        <ItemTypeIcon
+                          icon={type.icon}
+                          color={type.color}
                         />
                         <span>{type.name}</span>
                       </Link>
