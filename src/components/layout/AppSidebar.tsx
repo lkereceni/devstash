@@ -1,31 +1,31 @@
-import { SidebarBrand } from "@/components/dashboard/SidebarBrand";
-import { SidebarCollections } from "@/components/dashboard/SidebarCollections";
-import { SidebarTypes } from "@/components/dashboard/SidebarTypes";
-import { SidebarUser } from "@/components/dashboard/SidebarUser";
+import { SidebarBrand } from "@/components/layout/SidebarBrand";
 import {
-  Sidebar as SidebarRoot,
+  Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
+import { CollectionsNav } from "@/features/collections";
+import { ItemTypesNav } from "@/features/items";
+import { SidebarUser } from "@/features/user";
 
-export function Sidebar() {
+export function AppSidebar() {
   return (
-    <SidebarRoot collapsible="icon">
+    <Sidebar collapsible="icon">
       <SidebarHeader className="h-16 justify-center border-b">
         <SidebarBrand />
       </SidebarHeader>
       <SidebarContent>
-        <SidebarTypes />
+        <ItemTypesNav />
         <SidebarSeparator />
-        <SidebarCollections />
+        <CollectionsNav />
       </SidebarContent>
       <SidebarFooter className="border-t">
         <SidebarUser />
       </SidebarFooter>
       <SidebarRail />
-    </SidebarRoot>
+    </Sidebar>
   );
 }

@@ -2,10 +2,10 @@ import { Star } from "lucide-react";
 import Link from "next/link";
 import type { CSSProperties } from "react";
 
-import { ItemTypeIcon } from "@/components/dashboard/ItemTypeIcon";
+import { ItemTypeIcon } from "@/features/items";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getCollectionTypes } from "@/lib/dashboard";
-import type { Collection } from "@/lib/mock-data";
+import { getCollectionTypes } from "@/features/collections/lib/collections";
+import type { Collection } from "@/features/collections/types";
 
 interface CollectionCardProps {
   collection: Collection;

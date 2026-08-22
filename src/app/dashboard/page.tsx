@@ -1,14 +1,8 @@
 import { Clock, Pin } from "lucide-react";
 
-import { CollectionCard } from "@/components/dashboard/CollectionCard";
-import { DashboardSection } from "@/components/dashboard/DashboardSection";
-import { ItemRow } from "@/components/dashboard/ItemRow";
-import { StatsCards } from "@/components/dashboard/StatsCards";
-import {
-  getPinnedItems,
-  getRecentCollections,
-  getRecentItems,
-} from "@/lib/dashboard";
+import { CollectionCard, getRecentCollections } from "@/features/collections";
+import { DashboardSection, StatsCards } from "@/features/dashboard";
+import { ItemRow, getPinnedItems, getRecentItems } from "@/features/items";
 
 const RECENT_COLLECTIONS_LIMIT = 6;
 const RECENT_ITEMS_LIMIT = 10;

@@ -2,13 +2,13 @@ import { Pin, Star } from "lucide-react";
 import Link from "next/link";
 import type { CSSProperties } from "react";
 
-import { ItemTypeIcon } from "@/components/dashboard/ItemTypeIcon";
+import { ItemTypeIcon } from "@/features/items/components/ItemTypeIcon";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { getItemType } from "@/lib/dashboard";
+import { getItemTypeHref } from "@/features/items/lib/item-types";
+import { getItemType } from "@/features/items/lib/items";
+import type { Item } from "@/features/items/types";
 import { formatShortDate } from "@/lib/format";
-import { getItemTypeHref } from "@/lib/item-types";
-import type { Item } from "@/lib/mock-data";
 
 interface ItemRowProps {
   item: Item;

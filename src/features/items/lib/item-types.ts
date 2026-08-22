@@ -9,7 +9,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import type { ItemType } from "@/lib/mock-data";
+import type { ItemType } from "@/features/items/types";
 
 /**
  * Maps the lucide icon names stored on an item type to their components.

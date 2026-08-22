@@ -18,21 +18,21 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { collections as allCollections, type Collection } from "@/lib/mock-data";
+import {
+  getFavoriteCollections,
+  getRecentCollections,
+} from "@/features/collections/lib/collections";
+import type { Collection } from "@/features/collections/types";
 
 const RECENT_COLLECTIONS_LIMIT = 5;
 
-const favoriteCollections = allCollections.filter(
-  (collection) => collection.isFavorite
-);
-
+const favoriteCollections = getFavoriteCollections();
 // Favourites already have their own section, so "recent" covers the rest.
-const recentCollections = allCollections
-  .filter((collection) => !collection.isFavorite)
-  .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
-  .slice(0, RECENT_COLLECTIONS_LIMIT);
+const recentCollections = getRecentCollections(RECENT_COLLECTIONS_LIMIT, {
+  excludeFavorites: true,
+});
 
-export function SidebarCollections() {
+export function CollectionsNav() {
   const pathname = usePathname();
 
   return (
