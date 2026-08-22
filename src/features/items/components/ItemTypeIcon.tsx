@@ -1,7 +1,7 @@
 import { File } from "lucide-react";
 import type { CSSProperties } from "react";
 
-import { ITEM_TYPE_ICONS } from "@/lib/item-types";
+import { ITEM_TYPE_ICONS } from "@/features/items/lib/item-types";
 import { cn } from "@/lib/utils";
 
 interface ItemTypeIconProps {

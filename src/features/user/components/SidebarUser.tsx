@@ -2,7 +2,7 @@ import { Settings } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { currentUser } from "@/lib/mock-data";
+import { getCurrentUser } from "@/features/user/lib/user";
 
 function getInitials(name: string): string {
   return name
@@ -14,6 +14,8 @@ function getInitials(name: string): string {
 }
 
 export function SidebarUser() {
+  const currentUser = getCurrentUser();
+
   return (
     <div className="flex items-center gap-2 rounded-md p-1 group-data-[collapsible=icon]:p-0">
       <Avatar>

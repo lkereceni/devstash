@@ -4,7 +4,9 @@ import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { ItemTypeIcon } from "@/components/dashboard/ItemTypeIcon";
+import { ItemTypeIcon } from "@/features/items/components/ItemTypeIcon";
+import { getItemTypeHref } from "@/features/items/lib/item-types";
+import { getItemTypes } from "@/features/items/lib/items";
 import {
   Collapsible,
   CollapsibleContent,
@@ -19,10 +21,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { getItemTypeHref } from "@/lib/item-types";
-import { itemTypes } from "@/lib/mock-data";
 
-export function SidebarTypes() {
+const itemTypes = getItemTypes();
+
+export function ItemTypesNav() {
   const pathname = usePathname();
 
   return (
@@ -51,10 +53,7 @@ export function SidebarTypes() {
                       tooltip={`${type.name} (${type.itemCount})`}
                     >
                       <Link href={href}>
-                        <ItemTypeIcon
-                          icon={type.icon}
-                          color={type.color}
-                        />
+                        <ItemTypeIcon icon={type.icon} color={type.color} />
                         <span>{type.name}</span>
                       </Link>
                     </SidebarMenuButton>

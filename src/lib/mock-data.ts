@@ -1,54 +1,15 @@
 /**
  * Mock data for the dashboard UI.
- * Single source of truth until the database is wired up.
+ * Single source of truth until the database is wired up — this file stands in
+ * for the Prisma layer, so it is shared rather than owned by one feature.
+ * The domain types live with their features. This is the one place allowed to
+ * import from inside a feature rather than its barrel: going through the barrel
+ * would pull the feature's components in here and create an import cycle.
  */
 
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  avatarUrl: string | null;
-  isPro: boolean;
-}
-
-export interface ItemType {
-  id: string;
-  name: string;
-  icon: string; // lucide icon name
-  color: string;
-  isSystem: boolean;
-  itemCount: number;
-}
-
-export interface Collection {
-  id: string;
-  name: string;
-  description: string;
-  color: string;
-  isFavorite: boolean;
-  itemCount: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Item {
-  id: string;
-  title: string;
-  description: string;
-  contentType: "text" | "file";
-  content: string | null;
-  language: string | null;
-  url: string | null;
-  fileName: string | null;
-  fileSize: number | null;
-  typeId: string;
-  collectionId: string | null;
-  tags: string[];
-  isFavorite: boolean;
-  isPinned: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+import type { Collection } from "@/features/collections/types";
+import type { Item, ItemType } from "@/features/items/types";
+import type { User } from "@/features/user/types";
 
 export const currentUser: User = {
   id: "user_1",

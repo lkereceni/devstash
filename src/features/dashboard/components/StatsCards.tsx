@@ -2,7 +2,7 @@ import { FolderHeart, FolderOpen, Layers, Star } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { getDashboardStats } from "@/lib/dashboard";
+import { getDashboardStats } from "@/features/dashboard/lib/stats";
 
 interface Stat {
   label: string;
