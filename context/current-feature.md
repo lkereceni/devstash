@@ -2,7 +2,7 @@
 
 <!-- Feature Name -->
 
-Feature-driven architecture refactor
+Neon PostgreSQL + Prisma ORM setup
 
 ## Status
 
@@ -29,3 +29,4 @@ Completed
 - Dashboard UI Phase 2 (sidebar): ShadCN sidebar/avatar/collapsible/separator, collapsible Types group linking to `/items/[type]`, Collections group with favorites and recent, brand header, user footer, top bar drawer trigger with cookie-persisted state, icon rail on desktop and Sheet drawer on mobile
 - Dashboard UI Phase 3 (main area): ShadCN card/badge, 4 stats cards, collections grid with per-collection type icons, pinned items, 10 most recent items, shared section header, derived data helpers in @src/lib/dashboard.ts
 - Feature-driven architecture: `src/features/[feature]/` (items, collections, dashboard, user) each owning components/lib/types behind an `index.ts` barrel, app shell chrome moved to @src/components/layout, `src/lib/dashboard.ts` split across the features, domain types moved out of @src/lib/mock-data.ts, architecture notes rewritten in @CLAUDE.md and file organization rules updated in @context/coding-standards.md
+- Neon PostgreSQL + Prisma ORM setup: Prisma 7 (`prisma-client` generator into @src/generated/prisma, datasource URL in `prisma.config.ts`, Neon driver adapter), initial schema for `User`/`Item`/`ItemType`/`Collection`/`Tag`/`ItemTag` plus NextAuth `Account`/`Session`/`VerificationToken`, foreign-key and lookup indexes, cascade rules (user-owned cascades, `Item.collection` set null, `Item.type` restrict), client singleton in @src/lib/prisma.ts, `.env.example` documenting `DATABASE_URL`/`DIRECT_URL`, `init` migration created and applied to the Neon development branch
