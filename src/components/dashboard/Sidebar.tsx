@@ -1,7 +1,31 @@
+import { SidebarBrand } from "@/components/dashboard/SidebarBrand";
+import { SidebarCollections } from "@/components/dashboard/SidebarCollections";
+import { SidebarTypes } from "@/components/dashboard/SidebarTypes";
+import { SidebarUser } from "@/components/dashboard/SidebarUser";
+import {
+  Sidebar as SidebarRoot,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarRail,
+  SidebarSeparator,
+} from "@/components/ui/sidebar";
+
 export function Sidebar() {
   return (
-    <aside className="flex w-64 shrink-0 flex-col border-r bg-sidebar">
-      <h2 className="px-6 py-5 text-lg font-semibold">Sidebar</h2>
-    </aside>
+    <SidebarRoot collapsible="icon">
+      <SidebarHeader className="h-16 justify-center border-b">
+        <SidebarBrand />
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarTypes />
+        <SidebarSeparator />
+        <SidebarCollections />
+      </SidebarContent>
+      <SidebarFooter className="border-t">
+        <SidebarUser />
+      </SidebarFooter>
+      <SidebarRail />
+    </SidebarRoot>
   );
 }

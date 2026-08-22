@@ -2,11 +2,15 @@ import { FolderPlus, Plus, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export function TopBar() {
   return (
-    <header className="flex h-16 shrink-0 items-center gap-3 border-b px-6">
-      <div className="relative w-full max-w-md">
+    <header className="flex h-16 shrink-0 items-center gap-3 border-b px-4 sm:px-6">
+      <SidebarTrigger className="-ml-1.5" />
+      <Separator orientation="vertical" className="mr-1 h-6" />
+      <div className="relative min-w-0 flex-1 md:max-w-md">
         <Search
           aria-hidden
           className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
@@ -21,14 +25,14 @@ export function TopBar() {
           ⌘K
         </kbd>
       </div>
-      <div className="ml-auto flex items-center gap-2">
-        <Button variant="outline" size="lg">
+      <div className="ml-auto flex shrink-0 items-center gap-2">
+        <Button variant="outline" size="lg" aria-label="New Collection">
           <FolderPlus aria-hidden />
-          New Collection
+          <span className="hidden md:inline">New Collection</span>
         </Button>
-        <Button size="lg">
+        <Button size="lg" aria-label="New Item">
           <Plus aria-hidden />
-          New Item
+          <span className="hidden md:inline">New Item</span>
         </Button>
       </div>
     </header>
