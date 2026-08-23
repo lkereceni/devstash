@@ -2,22 +2,24 @@ import { Star } from "lucide-react";
 import Link from "next/link";
 import type { CSSProperties } from "react";
 
-import { ItemTypeIcon } from "@/features/items";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getCollectionTypes } from "@/features/collections/lib/collections";
 import type { Collection } from "@/features/collections/types";
+import { ItemTypeIcon } from "@/features/items";
 
 interface CollectionCardProps {
   collection: Collection;
 }
 
 export function CollectionCard({ collection }: CollectionCardProps) {
-  const types = getCollectionTypes(collection.id);
-
   return (
     <Card
       className="relative border-l-4 border-l-(--collection-color) transition-colors hover:bg-muted/40"
-      style={{ "--collection-color": collection.color } as CSSProperties}
+      style={
+        {
+          // An empty collection has no type to take its accent from.
+          "--collection-color": collection.color ?? "var(--border)",
+        } as CSSProperties
+      }
     >
       <CardHeader>
         <CardTitle className="flex items-center gap-1.5">
@@ -39,15 +41,17 @@ export function CollectionCard({ collection }: CollectionCardProps) {
         </p>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
-        <p className="line-clamp-2 text-sm text-muted-foreground">
-          {collection.description}
-        </p>
+        {collection.description ? (
+          <p className="line-clamp-2 text-sm text-muted-foreground">
+            {collection.description}
+          </p>
+        ) : null}
         <div className="flex items-center gap-2">
-          {types.map((type) => (
+          {collection.types.map((type) => (
             <ItemTypeIcon
               key={type.id}
               icon={type.icon}
-              color={type.color}
+              color={type.color ?? undefined}
               label={type.name}
               className="size-4"
             />

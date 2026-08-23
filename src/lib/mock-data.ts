@@ -1,13 +1,13 @@
 /**
  * Mock data for the dashboard UI.
- * Single source of truth until the database is wired up — this file stands in
- * for the Prisma layer, so it is shared rather than owned by one feature.
+ * Stands in for the Prisma layer for the parts of the UI that are not on the
+ * database yet — items and the current user. Collections now come from Prisma
+ * (src/features/collections/lib/collections.ts).
  * The domain types live with their features. This is the one place allowed to
  * import from inside a feature rather than its barrel: going through the barrel
  * would pull the feature's components in here and create an import cycle.
  */
 
-import type { Collection } from "@/features/collections/types";
 import type { Item, ItemType } from "@/features/items/types";
 import type { User } from "@/features/user/types";
 
@@ -75,69 +75,6 @@ export const itemTypes: ItemType[] = [
     color: "#10b981",
     isSystem: true,
     itemCount: 8,
-  },
-];
-
-export const collections: Collection[] = [
-  {
-    id: "col_react_patterns",
-    name: "React Patterns",
-    description: "Common React patterns and hooks",
-    color: "#3b82f6",
-    isFavorite: true,
-    itemCount: 12,
-    createdAt: "2024-01-02T09:00:00.000Z",
-    updatedAt: "2024-01-15T14:20:00.000Z",
-  },
-  {
-    id: "col_python_snippets",
-    name: "Python Snippets",
-    description: "Useful Python code snippets",
-    color: "#38bdf8",
-    isFavorite: false,
-    itemCount: 8,
-    createdAt: "2024-01-03T11:30:00.000Z",
-    updatedAt: "2024-01-11T08:45:00.000Z",
-  },
-  {
-    id: "col_context_files",
-    name: "Context Files",
-    description: "AI context files for projects",
-    color: "#94a3b8",
-    isFavorite: true,
-    itemCount: 5,
-    createdAt: "2024-01-04T16:10:00.000Z",
-    updatedAt: "2024-01-14T10:05:00.000Z",
-  },
-  {
-    id: "col_interview_prep",
-    name: "Interview Prep",
-    description: "Technical interview preparation",
-    color: "#eab308",
-    isFavorite: false,
-    itemCount: 24,
-    createdAt: "2024-01-05T13:25:00.000Z",
-    updatedAt: "2024-01-13T19:40:00.000Z",
-  },
-  {
-    id: "col_git_commands",
-    name: "Git Commands",
-    description: "Frequently used git commands",
-    color: "#f97316",
-    isFavorite: true,
-    itemCount: 15,
-    createdAt: "2024-01-06T07:55:00.000Z",
-    updatedAt: "2024-01-12T15:15:00.000Z",
-  },
-  {
-    id: "col_ai_prompts",
-    name: "AI Prompts",
-    description: "Curated AI prompts for coding",
-    color: "#a855f7",
-    isFavorite: false,
-    itemCount: 18,
-    createdAt: "2024-01-07T12:00:00.000Z",
-    updatedAt: "2024-01-15T09:30:00.000Z",
   },
 ];
 

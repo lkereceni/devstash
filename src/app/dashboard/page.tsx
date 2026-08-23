@@ -7,8 +7,10 @@ import { ItemRow, getPinnedItems, getRecentItems } from "@/features/items";
 const RECENT_COLLECTIONS_LIMIT = 6;
 const RECENT_ITEMS_LIMIT = 10;
 
-export default function DashboardPage() {
-  const recentCollections = getRecentCollections(RECENT_COLLECTIONS_LIMIT);
+export default async function DashboardPage() {
+  const recentCollections = await getRecentCollections(
+    RECENT_COLLECTIONS_LIMIT
+  );
   const pinnedItems = getPinnedItems();
   const recentItems = getRecentItems(RECENT_ITEMS_LIMIT);
 
