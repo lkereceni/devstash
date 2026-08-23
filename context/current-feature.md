@@ -2,7 +2,7 @@
 
 <!-- Feature Name -->
 
-Neon PostgreSQL + Prisma ORM setup
+Database seed script
 
 ## Status
 
@@ -30,3 +30,4 @@ Completed
 - Dashboard UI Phase 3 (main area): ShadCN card/badge, 4 stats cards, collections grid with per-collection type icons, pinned items, 10 most recent items, shared section header, derived data helpers in @src/lib/dashboard.ts
 - Feature-driven architecture: `src/features/[feature]/` (items, collections, dashboard, user) each owning components/lib/types behind an `index.ts` barrel, app shell chrome moved to @src/components/layout, `src/lib/dashboard.ts` split across the features, domain types moved out of @src/lib/mock-data.ts, architecture notes rewritten in @CLAUDE.md and file organization rules updated in @context/coding-standards.md
 - Neon PostgreSQL + Prisma ORM setup: Prisma 7 (`prisma-client` generator into @src/generated/prisma, datasource URL in `prisma.config.ts`, Neon driver adapter), initial schema for `User`/`Item`/`ItemType`/`Collection`/`Tag`/`ItemTag` plus NextAuth `Account`/`Session`/`VerificationToken`, foreign-key and lookup indexes, cascade rules (user-owned cascades, `Item.collection` set null, `Item.type` restrict), client singleton in @src/lib/prisma.ts, `.env.example` documenting `DATABASE_URL`/`DIRECT_URL`, `init` migration created and applied to the Neon development branch
+- Database seed script: `prisma/seed.ts` run through `migrations.seed` in @prisma.config.ts via tsx, demo user (bcryptjs, 12 rounds), 7 system item types, 5 collections and 18 items with 21 reused tags via `connectOrCreate`, idempotent by rebuilding only the demo user's rows; `StickyNote` added to `ITEM_TYPE_ICONS` and @src/lib/mock-data.ts icons/colours synced to the spec

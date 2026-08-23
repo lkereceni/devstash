@@ -5,6 +5,7 @@ import {
   Image,
   Link,
   Sparkles,
+  StickyNote,
   Terminal,
   type LucideIcon,
 } from "lucide-react";
@@ -23,6 +24,7 @@ export const ITEM_TYPE_ICONS: Record<string, LucideIcon> = {
   Image,
   Link,
   Sparkles,
+  StickyNote,
   Terminal,
 };
 
