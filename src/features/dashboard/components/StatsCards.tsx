@@ -10,8 +10,8 @@ interface Stat {
   icon: LucideIcon;
 }
 
-export function StatsCards() {
-  const stats = getDashboardStats();
+export async function StatsCards() {
+  const stats = await getDashboardStats();
 
   const cards: Stat[] = [
     { label: "Items", value: stats.items, icon: Layers },

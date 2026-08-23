@@ -1,7 +1,7 @@
 export { CollectionCard } from "./components/CollectionCard";
 export { CollectionsNav } from "./components/CollectionsNav";
 export {
-  getCollectionTypes,
+  getCollectionStats,
   getFavoriteCollections,
   getRecentCollections,
 } from "./lib/collections";
