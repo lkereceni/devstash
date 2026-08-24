@@ -1,8 +1,9 @@
 "use client";
 
-import { ChevronDown, Folder, Star } from "lucide-react";
+import { ChevronDown, Folder, FolderOpen, Star } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { CSSProperties } from "react";
 
 import {
   Collapsible,
@@ -19,6 +20,8 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import type { Collection } from "@/features/collections/types";
+
+const ALL_COLLECTIONS_HREF = "/collections";
 
 interface CollectionsNavGroupProps {
   favoriteCollections: Collection[];
@@ -49,13 +52,28 @@ export function CollectionsNavGroup({
               heading="Favorites"
               collections={favoriteCollections}
               pathname={pathname}
-              showFavoriteIcon
+              badge="favorite"
             />
             <CollectionList
               heading="Recent"
               collections={recentCollections}
               pathname={pathname}
+              badge="type-color"
             />
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname === ALL_COLLECTIONS_HREF}
+                  tooltip="View all collections"
+                >
+                  <Link href={ALL_COLLECTIONS_HREF}>
+                    <FolderOpen aria-hidden />
+                    <span>View all collections</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
           </SidebarGroupContent>
         </CollapsibleContent>
       </SidebarGroup>
@@ -67,14 +85,15 @@ interface CollectionListProps {
   heading: string;
   collections: Collection[];
   pathname: string;
-  showFavoriteIcon?: boolean;
+  /** Trailing marker: a star, or a dot in the collection's dominant type colour. */
+  badge: "favorite" | "type-color";
 }
 
 function CollectionList({
   heading,
   collections,
   pathname,
-  showFavoriteIcon = false,
+  badge,
 }: CollectionListProps) {
   if (collections.length === 0) {
     return null;
@@ -101,20 +120,38 @@ function CollectionList({
                   <span>{collection.name}</span>
                 </Link>
               </SidebarMenuButton>
-              {showFavoriteIcon ? (
-                <SidebarMenuBadge>
+              <SidebarMenuBadge>
+                {badge === "favorite" ? (
                   <Star
                     aria-label="Favorite"
                     className="size-3.5 fill-amber-400 text-amber-400"
                   />
-                </SidebarMenuBadge>
-              ) : (
-                <SidebarMenuBadge>{collection.itemCount}</SidebarMenuBadge>
-              )}
+                ) : (
+                  <TypeColorDot color={collection.color} />
+                )}
+              </SidebarMenuBadge>
             </SidebarMenuItem>
           );
         })}
       </SidebarMenu>
     </div>
+  );
+}
+
+/**
+ * Stands for the item type the collection holds most of — `Collection.color` is
+ * already derived from it. Decorative: the collection name carries the meaning.
+ */
+function TypeColorDot({ color }: { color: string | null }) {
+  return (
+    <span
+      aria-hidden
+      className="size-2.5 rounded-full bg-(--type-color)"
+      style={
+        {
+          "--type-color": color ?? "var(--color-muted-foreground)",
+        } as CSSProperties
+      }
+    />
   );
 }
