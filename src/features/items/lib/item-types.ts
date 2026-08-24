@@ -10,7 +10,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import type { ItemType } from "@/features/items/types";
+import type { ItemTypeSummary } from "@/features/items/types";
 
 /**
  * Maps the lucide icon names stored on an item type to their components.
@@ -29,7 +29,7 @@ export const ITEM_TYPE_ICONS: Record<string, LucideIcon> = {
 };
 
 /** Route for an item type listing, e.g. Snippets -> /items/snippets. */
-export function getItemTypeHref(type: ItemType): string {
+export function getItemTypeHref(type: ItemTypeSummary): string {
   const slug = type.name
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")

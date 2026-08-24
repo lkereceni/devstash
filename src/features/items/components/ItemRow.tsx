@@ -6,31 +6,28 @@ import { ItemTypeIcon } from "@/features/items/components/ItemTypeIcon";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { getItemTypeHref } from "@/features/items/lib/item-types";
-import { getItemType } from "@/features/items/lib/items";
-import type { Item } from "@/features/items/types";
+import type { ItemSummary } from "@/features/items/types";
 import { formatShortDate } from "@/lib/format";
 
 interface ItemRowProps {
-  item: Item;
+  item: ItemSummary;
 }
 
 export function ItemRow({ item }: ItemRowProps) {
-  const type = getItemType(item.typeId);
+  const { type } = item;
   // Item pages sit under their type listing so they cannot collide with it.
-  const href = type ? `${getItemTypeHref(type)}/${item.id}` : `/items/${item.id}`;
+  const href = `${getItemTypeHref(type)}/${item.id}`;
 
   return (
     <Card
       className="relative flex-row items-start gap-3 border-l-4 border-l-(--item-color) px-4 transition-colors hover:bg-muted/40"
-      style={
-        { "--item-color": type?.color ?? "var(--border)" } as CSSProperties
-      }
+      style={{ "--item-color": type.color ?? "var(--border)" } as CSSProperties}
     >
       <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted">
         <ItemTypeIcon
-          icon={type?.icon ?? "File"}
-          color={type?.color}
-          label={type?.name}
+          icon={type.icon}
+          color={type.color ?? undefined}
+          label={type.name}
           className="size-4"
         />
       </span>
@@ -55,9 +52,11 @@ export function ItemRow({ item }: ItemRowProps) {
             />
           ) : null}
         </div>
-        <p className="line-clamp-1 text-sm text-muted-foreground">
-          {item.description}
-        </p>
+        {item.description ? (
+          <p className="line-clamp-1 text-sm text-muted-foreground">
+            {item.description}
+          </p>
+        ) : null}
         {item.tags.length > 0 ? (
           <div className="flex flex-wrap items-center gap-1.5">
             {item.tags.map((tag) => (

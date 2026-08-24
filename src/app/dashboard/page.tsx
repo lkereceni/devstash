@@ -8,11 +8,11 @@ const RECENT_COLLECTIONS_LIMIT = 6;
 const RECENT_ITEMS_LIMIT = 10;
 
 export default async function DashboardPage() {
-  const recentCollections = await getRecentCollections(
-    RECENT_COLLECTIONS_LIMIT
-  );
-  const pinnedItems = getPinnedItems();
-  const recentItems = getRecentItems(RECENT_ITEMS_LIMIT);
+  const [recentCollections, pinnedItems, recentItems] = await Promise.all([
+    getRecentCollections(RECENT_COLLECTIONS_LIMIT),
+    getPinnedItems(),
+    getRecentItems(RECENT_ITEMS_LIMIT),
+  ]);
 
   return (
     <div className="flex flex-col gap-10">

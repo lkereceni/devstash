@@ -1,15 +1,17 @@
 import { getCollectionStats } from "@/features/collections";
 import type { DashboardStats } from "@/features/dashboard/types";
-import { items } from "@/lib/mock-data";
+import { getItemStats } from "@/features/items";
 
 export async function getDashboardStats(): Promise<DashboardStats> {
-  // Collections come from the database; items are still mock data.
-  const collections = await getCollectionStats();
+  const [items, collections] = await Promise.all([
+    getItemStats(),
+    getCollectionStats(),
+  ]);
 
   return {
-    items: items.length,
+    items: items.total,
     collections: collections.total,
-    favoriteItems: items.filter((item) => item.isFavorite).length,
+    favoriteItems: items.favorites,
     favoriteCollections: collections.favorites,
   };
 }
