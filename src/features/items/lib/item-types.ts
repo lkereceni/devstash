@@ -28,6 +28,18 @@ export const ITEM_TYPE_ICONS: Record<string, LucideIcon> = {
   Terminal,
 };
 
+/**
+ * Item types that are only usable on the Pro plan. There is no column for this
+ * on `item_types` yet, so the built-in types are listed by name until the plan
+ * model lands.
+ */
+const PRO_ITEM_TYPE_NAMES = new Set(["Files", "Images"]);
+
+/** Whether an item type is gated behind the Pro plan. */
+export function isProItemType(type: ItemTypeSummary): boolean {
+  return PRO_ITEM_TYPE_NAMES.has(type.name);
+}
+
 /** Route for an item type listing, e.g. Snippets -> /items/snippets. */
 export function getItemTypeHref(type: ItemTypeSummary): string {
   const slug = type.name
