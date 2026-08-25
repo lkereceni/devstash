@@ -5,7 +5,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { ItemTypeIcon } from "@/features/items/components/ItemTypeIcon";
-import { getItemTypeHref } from "@/features/items/lib/item-types";
+import {
+  getItemTypeHref,
+  isProItemType,
+} from "@/features/items/lib/item-types";
+import { Badge } from "@/components/ui/badge";
 import {
   Collapsible,
   CollapsibleContent,
@@ -46,20 +50,32 @@ export function ItemTypesNavGroup({ itemTypes }: ItemTypesNavGroupProps) {
             <SidebarMenu>
               {itemTypes.map((type) => {
                 const href = getItemTypeHref(type);
+                const isPro = isProItemType(type);
+                const tooltip = `${type.name} (${type.itemCount})`;
 
                 return (
                   <SidebarMenuItem key={type.id}>
                     <SidebarMenuButton
                       asChild
                       isActive={pathname === href}
-                      tooltip={`${type.name} (${type.itemCount})`}
+                      tooltip={isPro ? `${tooltip} · Pro` : tooltip}
                     >
                       <Link href={href}>
                         <ItemTypeIcon
                           icon={type.icon}
                           color={type.color ?? undefined}
                         />
-                        <span>{type.name}</span>
+                        {/* Explicit: the badge takes the button's
+                            span:last-child truncate rule on Pro rows. */}
+                        <span className="truncate">{type.name}</span>
+                        {isPro && (
+                          <Badge
+                            variant="outline"
+                            className="h-4 px-1 text-[0.7rem] font-semibold tracking-wider text-muted-foreground"
+                          >
+                            PRO
+                          </Badge>
+                        )}
                       </Link>
                     </SidebarMenuButton>
                     <SidebarMenuBadge>{type.itemCount}</SidebarMenuBadge>
