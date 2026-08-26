@@ -1,3 +1,5 @@
+import "server-only";
+
 import type { Prisma } from "@/generated/prisma/client";
 import type {
   Collection,
@@ -15,6 +17,27 @@ const DEMO_USER_EMAIL = "demo@devstash.io";
 const OWNED_BY_CURRENT_USER: Prisma.CollectionWhereInput = {
   user: { email: DEMO_USER_EMAIL },
 };
+
+/**
+ * The same scope for the item side. Items are filtered on their own owner
+ * rather than trusting the collection's: Item.collectionId has no composite
+ * foreign key tying it to Item.userId, so the database does not guarantee that
+ * a collection only ever holds its owner's items.
+ */
+const OWNED_BY_CURRENT_USER_ITEM: Prisma.ItemWhereInput = {
+  user: { email: DEMO_USER_EMAIL },
+};
+
+/** Everything a collection card renders — the unused colour column stays behind. */
+const COLLECTION_SELECT = {
+  id: true,
+  name: true,
+  description: true,
+  isFavorite: true,
+  createdAt: true,
+  updatedAt: true,
+  _count: { select: { items: { where: OWNED_BY_CURRENT_USER_ITEM } } },
+} satisfies Prisma.CollectionSelect;
 
 interface RecentCollectionOptions {
   /** Skip favourites, for surfaces that already list them separately. */
@@ -51,7 +74,7 @@ async function findCollections(
     where: { ...OWNED_BY_CURRENT_USER, ...where },
     orderBy: { updatedAt: "desc" },
     take,
-    include: { _count: { select: { items: true } } },
+    select: COLLECTION_SELECT,
   });
 
   if (rows.length === 0) {
@@ -91,7 +114,10 @@ async function getTypesByCollection(
 ): Promise<Map<string, CollectionItemType[]>> {
   const grouped = await prisma.item.groupBy({
     by: ["collectionId", "typeId"],
-    where: { collectionId: { in: collectionIds } },
+    where: {
+      ...OWNED_BY_CURRENT_USER_ITEM,
+      collectionId: { in: collectionIds },
+    },
     _count: { _all: true },
   });
 

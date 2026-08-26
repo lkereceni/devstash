@@ -123,6 +123,7 @@ function CollectionList({
               <SidebarMenuBadge>
                 {badge === "favorite" ? (
                   <Star
+                    role="img"
                     aria-label="Favorite"
                     className="size-3.5 fill-amber-400 text-amber-400"
                   />

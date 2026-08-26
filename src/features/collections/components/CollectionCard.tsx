@@ -31,6 +31,7 @@ export function CollectionCard({ collection }: CollectionCardProps) {
           </Link>
           {collection.isFavorite ? (
             <Star
+              role="img"
               aria-label="Favorite"
               className="size-3.5 shrink-0 fill-amber-400 text-amber-400"
             />

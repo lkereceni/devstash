@@ -23,6 +23,9 @@ export function ItemTypeIcon({
 
   return (
     <Icon
+      // lucide renders a bare <svg>, which has no mapped role — without this the
+      // aria-label is not reliably exposed to assistive tech.
+      role={label ? "img" : undefined}
       aria-label={label}
       aria-hidden={label ? undefined : true}
       className={cn("text-(--type-color)", className)}

@@ -44,7 +44,7 @@ src/
       types.ts             feature domain types
       index.ts             public API — the only path outsiders import
   hooks/                   shared hooks
-  lib/                     shared utils + mock-data.ts (stands in for Prisma)
+  lib/                     shared utils + prisma.ts (the client singleton)
 ```
 
 Current features: `items`, `collections`, `dashboard`, `user`.
@@ -53,9 +53,9 @@ Rules that matter:
 
 - **Import features through their barrel.** `import { ItemRow } from "@/features/items"` — never `@/features/items/components/ItemRow`. Inside a feature, import its own files by full path.
 - **A feature owns its slice of the UI wherever it appears.** The sidebar's Types section is `features/items/ItemTypesNav`; the Collections section is `features/collections/CollectionsNav`. `components/layout/AppSidebar.tsx` only composes them.
-- **Dependency direction is one-way.** `collections` → `items` today. Don't add the reverse; if two features need each other, the shared part belongs in `src/lib/` or a new feature.
-- **Only a feature's `lib/` reads `@/lib/mock-data`.** Components go through the feature's `lib/`. When Prisma lands, only those files change.
-- `src/lib/mock-data.ts` is the one file allowed to import from inside a feature (`@/features/items/types`) rather than its barrel — going through the barrel would pull components into the data module and create a cycle.
+- **Dependency direction is one-way.** Today: `dashboard` → `items`, `dashboard` → `collections`, `collections` → `items`. Nothing imports `dashboard`. Don't add a reverse edge; if two features need each other, the shared part belongs in `src/lib/` or a new feature.
+- **Only a feature's `lib/` touches Prisma.** Components go through the feature's `lib/` — `items/lib/items.ts` and `collections/lib/collections.ts` are the only modules that import `@/lib/prisma`. Both, and `src/lib/prisma.ts` itself, start with `import "server-only";` so a client component that reaches for them fails at build instead of dragging the Neon adapter into the browser bundle.
+- **Every query is scoped to the current user.** Until NextAuth lands that means a `DEMO_USER_EMAIL` constant, applied to the item side as well as the collection side — `Item.collectionId` has no composite foreign key tying it to `Item.userId`, so a collection's own scope does not vouch for the items inside it.
 
 **Read `node_modules/next/dist/docs/` before writing Next.js code.** This is v16 and the conventions differ from older App Router material. Two that bite immediately:
 
@@ -69,7 +69,7 @@ Rules that matter:
 ## Deliberate current state
 
 - The dashboard UI is built out at `/dashboard`; `src/app/page.tsx` is still a bare placeholder.
-- Everything renders from `src/lib/mock-data.ts`. There is no database, auth, or API yet.
+- Items and collections render from Neon via Prisma (`src/features/*/lib/`). There is no auth or API yet, and the signed-in user is still a mock — `src/features/user/lib/mock-user.ts`, the last stand-in left.
 - The sidebar and cards link to `/items/[type]`, `/items/[type]/[id]`, `/collections` and `/collections/[id]`. **None of those routes exist yet** — the links 404 on purpose.
 - `src/app/favicon.ico` is still the stock Next.js logo.
 - `public/` does not exist. Recreate the directory if static assets are needed; Next.js picks it up with no config.
