@@ -5,4 +5,8 @@ export {
   getFavoriteCollections,
   getRecentCollections,
 } from "./lib/collections";
-export type { Collection } from "./types";
+export type {
+  Collection,
+  CollectionItemType,
+  CollectionStats,
+} from "./types";

@@ -5,9 +5,9 @@ import type { CSSProperties } from "react";
 import { ItemTypeIcon } from "@/features/items/components/ItemTypeIcon";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { formatShortDate } from "@/features/items/lib/format";
 import { getItemTypeHref } from "@/features/items/lib/item-types";
 import type { ItemSummary } from "@/features/items/types";
-import { formatShortDate } from "@/lib/format";
 
 interface ItemRowProps {
   item: ItemSummary;
@@ -41,12 +41,14 @@ export function ItemRow({ item }: ItemRowProps) {
           </Link>
           {item.isPinned ? (
             <Pin
+              role="img"
               aria-label="Pinned"
               className="size-3.5 shrink-0 text-muted-foreground"
             />
           ) : null}
           {item.isFavorite ? (
             <Star
+              role="img"
               aria-label="Favorite"
               className="size-3.5 shrink-0 fill-amber-400 text-amber-400"
             />

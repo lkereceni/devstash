@@ -131,6 +131,9 @@ model Item {
   @@index([userId, updatedAt])
   @@index([userId, isPinned])
   @@index([userId, isFavorite])
+  // The collection grid groups a user's items by collection and type; both
+  // columns are filtered together now that the group is owner-scoped.
+  @@index([collectionId, userId])
   @@map("items")
 }
 
