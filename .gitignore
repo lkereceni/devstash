@@ -43,3 +43,6 @@ next-env.d.ts
 
 # prisma generated client (recreated by `npm run db:generate`)
 /src/generated
+
+# playwright mcp scratch snapshots
+/.playwright-mcp
