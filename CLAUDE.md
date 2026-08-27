@@ -23,6 +23,21 @@ npx tsc --noEmit # type check on its own
 
 There is no test runner configured and no test files. Adding one is a green-field decision — don't assume Jest/Vitest conventions exist.
 
+## Neon MCP
+
+Every Neon MCP call targets the **`devstash`** project, **`development`** branch. Pass both IDs explicitly on every call:
+
+- `projectId: "jolly-dew-18370578"` — the `devstash` project
+- `branchId: "br-aged-river-ay5hzhqm"` — the `development` branch
+
+**`branchId` is not optional.** Omitting it sends the query to the project's _default_ branch, which here is `production` (`br-hidden-truth-ayhwifv4`). A missing `branchId` is a production query, not a safe no-op.
+
+Never touch `production` — read or write — unless I name it in that request. Naming it once does not carry to the next request. This covers every Neon MCP tool, not just `run_sql`: schema inspection, migrations (`prepare_database_migration` / `complete_database_migration`), branch creation and deletion, query tuning, logs.
+
+Destructive SQL (`DROP`, `DELETE`, `TRUNCATE`, `UPDATE`/`ALTER` without a narrow `WHERE`) needs my explicit go-ahead first, on `development` too.
+
+Migrations still run through Prisma per @context/coding-standards.md, not the Neon MCP migration tools. `DIRECT_URL` in `.env` points at `development`; a production deploy needs `DIRECT_URL=<prod url> npx prisma migrate deploy` set explicitly for that one command.
+
 ## Stack
 
 Next.js 16.3.1 (App Router, Turbopack), React 19.2, TypeScript strict, Tailwind CSS v4.
