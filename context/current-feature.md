@@ -2,19 +2,32 @@
 
 <!-- Feature Name -->
 
+Auth Phase 2 - Credentials (Email/Password) Provider
+
 ## Status
 
 <!-- Not Started|In Progress|Completed -->
 
-Not Started
+In Progress
 
 ## Goals
 
 <!-- Goals & requirements -->
 
+- Add a Credentials provider alongside GitHub, split across the edge-compatible config the same way GitHub is: `src/auth.config.ts` gets a placeholder (`authorize: () => null`), `src/auth.ts` overrides it with real bcrypt validation
+- Registration API route `POST /api/auth/register`: accepts `name`, `email`, `password`, `confirmPassword`; validates passwords match; checks for an existing user; hashes with bcryptjs; creates the user; returns a success/error response
+- `User.password` already exists (`prisma/schema.prisma:29`, nullable) — no migration needed
+
 ## Notes
 
 <!-- Any extra notes -->
+
+Spec: `context/features/auth-phase-2-spec.md`
+
+- bcryptjs is already a dependency (used by the seed script)
+- Use Context7 to verify current NextAuth v5 Credentials-provider conventions before implementing
+- Testing: `curl -X POST /api/auth/register` with matching passwords creates a user; sign in with email/password at `/api/auth/signin` redirects to `/dashboard`; GitHub OAuth still works afterward
+- Reference: https://authjs.dev/getting-started/authentication/credentials
 
 ## History
 
