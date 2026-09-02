@@ -2,39 +2,19 @@
 
 <!-- Feature Name -->
 
-Auth Phase 1 - NextAuth + GitHub Provider
-
 ## Status
 
 <!-- Not Started|In Progress|Completed -->
 
-In Progress
+Not Started
 
 ## Goals
 
 <!-- Goals & requirements -->
 
-- Install NextAuth v5 (`next-auth@beta`) and `@auth/prisma-adapter`
-- Split auth config pattern for edge compatibility: `src/auth.config.ts` (providers only, no adapter) and `src/auth.ts` (full config, Prisma adapter, JWT strategy)
-- Add GitHub OAuth provider
-- Export handlers from `src/app/api/auth/[...nextauth]/route.ts`
-- Protect `/dashboard/*` routes via `src/proxy.ts` (Next.js 16 proxy), redirecting unauthenticated users to sign-in
-- Extend the `Session` type with `user.id` in `src/types/next-auth.d.ts`
-- Use NextAuth's default sign-in page (no custom `pages.signIn`)
-- Add `AUTH_SECRET`, `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET` env vars
-
 ## Notes
 
 <!-- Any extra notes -->
-
-Spec: `context/features/auth-phase-1-spec.md`
-
-- Use `next-auth@beta`, not `@latest` (installs v4)
-- `src/proxy.ts` must sit at the same level as `app/`, with a named export `export const proxy = auth(...)` (not default export)
-- `session: { strategy: 'jwt' }` with the split config pattern
-- Use Context7 to verify current NextAuth v5 config/conventions before implementing
-- Testing: visiting `/dashboard` unauthenticated redirects to sign-in; "Sign in with GitHub" redirects back to `/dashboard` after auth
-- References: https://authjs.dev/getting-started/installation#edge-compatibility, https://authjs.dev/getting-started/adapters/prisma
 
 ## History
 
@@ -55,3 +35,4 @@ Spec: `context/features/auth-phase-1-spec.md`
 - Stats & sidebar from the database: most of @context/features/stats-sidebar-spec.md was already satisfied by the two previous features — the stats cards, the sidebar item types with their icons linking to `/items/[slug]`, and the sidebar collections all read from Prisma already, checked against the seeded data rather than assumed (the sidebar type counts sum to the 18 items the stats card reports). New work was a "View all collections" entry at the foot of the Collections group, using `FolderOpen` so it stays distinct from the per-collection `Folder` once the sidebar collapses to the icon rail, and a dominant-type colour dot on recent collections: it takes the `SidebarMenuBadge` slot so it parallels the star that favourites keep, which drops the item count from the sidebar — the count stays in the hover tooltip. The dot reuses `Collection.color`, already derived from the most-used type and the same value as the card's left border, falling back to `var(--color-muted-foreground)` for a collection with no items; `CollectionList`'s `showFavoriteIcon` boolean became a `badge: "favorite" | "type-color"` prop. No `src/lib/db/items.ts` as the spec names — the item queries stay in @src/features/items/lib/items.ts per the one-data-layer-per-feature rule in @CLAUDE.md, the same call as the two previous features, and every database function the spec asks for already existed.
 - Pro badge in the sidebar: `Files` and `Images` carry an uppercase `PRO` badge in the Types group, from @context/features/add-pro-badge-sidebar.md. Which types are Pro-gated is not in the data — `item_types` has no plan column — so `PRO_ITEM_TYPE_NAMES` in @src/features/items/lib/item-types.ts lists them by name behind an `isProItemType` predicate, kept out of the feature barrel since only `ItemTypesNavGroup` needs it and it is the one place to change when the plan model lands. The badge is the ShadCN `Badge` at `variant="outline"`, shrunk to `h-4 px-1 text-[0.7rem]` with `text-muted-foreground` so it sits in the same size register as the sidebar's own FAVORITES/RECENT labels; it renders inline after the type name inside the `Link`, so the `SidebarMenuBadge` slot keeps the item count and both read on the same row. The name span now carries `truncate` explicitly, because `SidebarMenuButton` applies truncation through `[&>span:last-child]:truncate` and the badge takes that slot on Pro rows. The icon rail needs no special casing — the button's `overflow-hidden` clips the badge along with the name — so the collapsed tooltip gains `· Pro` to carry the information instead. Note against the spec: @context/project-overview.md puts image uploads on the Free tier and only file uploads on Pro, so badging `Images` follows the spec rather than the pricing table.
 - Codebase audit quick wins: the low-risk half of a full-codebase audit, ten fixes on one branch. Correctness — @src/features/collections/lib/collections.ts now scopes the collection `_count` and the item `groupBy` to the current user instead of trusting that a collection only ever holds its owner's items (`Item.collectionId` has no composite foreign key to `Item.userId`, so the database does not enforce it); that new predicate is why `Item` gained `@@index([collectionId, userId])` and migration `20260826121105_item_collection_user_index`, one additive `CREATE INDEX` applied to the dev branch with `migrate dev` and to the prod branch with `migrate deploy`, both reporting no drift. `server-only` guards @src/lib/prisma.ts and the two feature data layers, so a client component importing the items barrel now fails the build by name rather than quietly dragging the Neon adapter into the browser bundle — verified with a throwaway client probe, not assumed. `User.name` became `string | null` to match `name String?` in the schema and `getInitials` took an email fallback, so the first OAuth account without a name stops throwing on `.split(" ")`. Accessibility — `role="img"` next to `aria-label` on lucide's bare `<svg>`: `ItemTypeIcon` as planned, plus the star and pin in `ItemRow`, `CollectionCard` and `CollectionsNavGroup`, which carried the identical defect; 34 labelled icons on the dashboard, all 34 now exposed. Cleanup — dead `src/lib/sort.ts` deleted, `format.ts` moved to @src/features/items/lib/format.ts and `mock-data.ts` to @src/features/user/lib/mock-user.ts, which retires the import-cycle exemption that `src/lib/mock-data.ts` used to need; an explicit `select` in `findCollections` matching the one `findItems` already had; and `--font-mono` mapped in the `@theme inline` block so the Geist Mono webfont the layout already downloads is finally reachable from `font-mono`. Docs — five stale statements corrected in @CLAUDE.md, including the claim that there is no database. Against the plan: goal 8 was written as "drop the barrel exports nothing outside consumes", but trimming `ItemStats` while adding `CollectionStats` is incoherent when both are return types of barrel-exported functions, so the rule applied instead was that a barrel exports the types its functions return — `CollectionStats` and `CollectionItemType` added, nothing removed. Deferred to their own features, with reasons recorded at the time: the unbounded `getPinnedItems`/`getFavoriteCollections`, the item types fetched four times per dashboard render (wants a `cache()`-wrapped lookup), the seed's hardcoded password and missing `NODE_ENV` guard, the 448-line `prisma/seed.ts`, the dead `collections.color` column, and `prisma.config.ts` loading `.env` while `next build` prefers `.env.production` — that last one is why deploying a migration to prod currently needs an explicit `DIRECT_URL=<prod url> npx prisma migrate deploy`.
+- Auth Phase 1 - NextAuth v5 + GitHub provider: `next-auth@beta` (not `@latest`, which installs v4) plus `@auth/prisma-adapter`, split into an edge-compatible @src/auth.config.ts (providers only) and the full @src/auth.ts (Prisma adapter, `session: { strategy: "jwt" }`, `jwt`/`session` callbacks copying `user.id` onto the token and session), following https://authjs.dev/getting-started/installation#edge-compatibility. GitHub is the only provider. Handlers re-exported from `src/app/api/auth/[...nextauth]/route.ts`; `Session.user.id` typed via module augmentation in @src/types/next-auth.d.ts. @src/proxy.ts builds its own edge-only `NextAuth(authConfig)` instance (can't import `src/auth.ts` — that one carries the Prisma adapter, not edge-safe), matches `/dashboard/:path*`, and redirects an unauthenticated request to `/api/auth/signin` with `callbackUrl` set back to the original URL. No custom `pages.signIn` — NextAuth's default page is used as-is. `AUTH_SECRET`, `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET` documented in `.env.example`. Verified by curling a fresh dev server rather than assumed: unauthenticated `/dashboard` returns a 307 to `/api/auth/signin?callbackUrl=...`, and that sign-in page renders a "Sign in with GitHub" button — the full OAuth round-trip still needs a human to click through a real GitHub login in a browser, which wasn't possible in this session. `context/features/auth-phase-2-spec.md` and `auth-phase-3-spec.md` were already sitting in the working tree for later phases and were deliberately left uncommitted rather than swept in with `git add -A`.
