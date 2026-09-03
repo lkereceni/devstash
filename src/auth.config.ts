@@ -8,6 +8,9 @@ import GitHub from "next-auth/providers/github";
 // validate, neither of which is edge-safe, so this is a placeholder —
 // src/auth.ts replaces the whole providers array with the real one.
 export const authConfig = {
+  pages: {
+    signIn: "/sign-in",
+  },
   providers: [
     GitHub,
     Credentials({
