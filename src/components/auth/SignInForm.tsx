@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +14,9 @@ import { GitHubIcon } from "@/components/auth/GitHubIcon";
 
 const ERROR_MESSAGES: Record<string, string> = {
   CredentialsSignin: "Invalid email or password.",
+  "email-not-verified": "Verify your email before signing in.",
+  "invalid-token": "That verification link is invalid.",
+  "expired-token": "That verification link has expired.",
   OAuthAccountNotLinked: "That email is already registered with a different sign-in method.",
 };
 
@@ -23,20 +27,35 @@ function errorMessage(code: string): string {
 export function SignInForm({
   callbackUrl,
   initialError,
+  verified,
 }: {
   callbackUrl: string;
   initialError?: string;
+  verified?: boolean;
 }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(initialError ? errorMessage(initialError) : null);
+  const [needsVerification, setNeedsVerification] = useState(
+    initialError === "email-not-verified" ||
+      initialError === "invalid-token" ||
+      initialError === "expired-token",
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGitHubSubmitting, setIsGitHubSubmitting] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+
+  useEffect(() => {
+    if (verified) {
+      toast.success("Email verified", { description: "You can now sign in." });
+    }
+  }, [verified]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
+    setNeedsVerification(false);
     setIsSubmitting(true);
 
     const result = await signIn("credentials", {
@@ -48,12 +67,29 @@ export function SignInForm({
     setIsSubmitting(false);
 
     if (!result || result.error) {
-      setError(errorMessage(result?.error ?? "CredentialsSignin"));
+      const code = result?.code ?? result?.error ?? "CredentialsSignin";
+      setError(errorMessage(code));
+      setNeedsVerification(code === "email-not-verified");
       return;
     }
 
     router.push(callbackUrl);
     router.refresh();
+  }
+
+  async function handleResendVerification() {
+    setIsResending(true);
+
+    await fetch("/api/auth/resend-verification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+
+    setIsResending(false);
+    toast.success("Verification email sent", {
+      description: "Check your inbox for a new link.",
+    });
   }
 
   async function handleGitHubSignIn() {
@@ -113,6 +149,17 @@ export function SignInForm({
           <p role="alert" className="text-sm text-destructive">
             {error}
           </p>
+        ) : null}
+        {needsVerification ? (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={isResending || !email}
+            onClick={handleResendVerification}
+          >
+            {isResending ? "Sending…" : "Resend verification email"}
+          </Button>
         ) : null}
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Signing in…" : "Sign in"}

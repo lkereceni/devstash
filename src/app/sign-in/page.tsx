@@ -5,10 +5,11 @@ export default async function SignInPage({ searchParams }: PageProps<"/sign-in">
   const params = await searchParams;
   const callbackUrl = typeof params.callbackUrl === "string" ? params.callbackUrl : "/dashboard";
   const error = typeof params.error === "string" ? params.error : undefined;
+  const verified = params.verified === "1";
 
   return (
     <AuthCard title="Sign in" description="Sign in to your DevStash account">
-      <SignInForm callbackUrl={callbackUrl} initialError={error} />
+      <SignInForm callbackUrl={callbackUrl} initialError={error} verified={verified} />
     </AuthCard>
   );
 }

@@ -1,20 +1,36 @@
 # Current Feature
 
-<!-- Feature Name -->
+Email Verification on Register
 
 ## Status
 
 <!-- Not Started|In Progress|Completed -->
 
-Not Started
+In Progress
 
 ## Goals
 
 <!-- Goals & requirements -->
 
+- On registration, create the user unverified and send a verification email via Resend containing a signed link
+- Clicking the link marks the email verified (`User.emailVerified`) and lands the user on sign-in (or straight into a session, TBD during `start`)
+- Credentials sign-in is blocked for an unverified user, with a clear message (GitHub OAuth users are provider-verified already and skip this entirely)
+- An expired or invalid token shows a clear error with a way to request a new email
+- `RESEND_API_KEY` is read from env, never hardcoded
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- Inline request, no spec file under `context/features/`
+- Reuse the existing `VerificationToken` model (`identifier`, `token`, `expires`) already in the schema for NextAuth — it's currently unused since no email provider is configured; confirm during `start` that reusing it for this purpose doesn't collide with anything NextAuth expects
+- `resend` npm package is not yet a dependency — needs adding
+- `RESEND_API_KEY` is already present in `.env`; no verified sending domain configured yet, so the "from" address will default to Resend's `onboarding@resend.dev` testing sender unless told otherwise
+- Decision: verifying does not auto-sign-in — it marks `emailVerified` and redirects to `/sign-in?verified=1`, keeping the verify route a simple stateless GET rather than one that also has to mint a session
+- Verify link points at a same-origin API route (`origin` taken from the incoming request), so no new `NEXTAUTH_URL`/site-URL env var is needed
+- Verified live: register (unverified) → blocked credentials sign-in with resend button → verify link consumes the token and redirects with a success toast → sign-in succeeds → reused/invalid token redirects with an error. Left one test account (`verify-tester@example.com`) verified in the `development` Neon branch, not cleaned up since deleting rows needs explicit go-ahead per @CLAUDE.md
+- Resend's shared `onboarding@resend.dev` sender can only deliver to the Resend account's own verified address, so sending to a fabricated test domain (`example.com`) 422s — caught and logged, registration/resend still succeed. Not a bug, just a sandbox limit that goes away once a real sending domain is configured
+- `review` caught a goal gap: the resend button only appeared for the "email not verified" sign-in block, not when arriving from an expired/invalid verify link — landing there gave the error message but no way to request a new email without first attempting (and failing) a sign-in. Fixed in `SignInForm` so `invalid-token`/`expired-token` also surface the resend button; reverified live
 
 ## History
 
