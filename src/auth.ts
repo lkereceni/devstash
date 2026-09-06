@@ -1,4 +1,4 @@
-import NextAuth from "next-auth";
+import NextAuth, { CredentialsSignin } from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import Credentials from "next-auth/providers/credentials";
 import GitHub from "next-auth/providers/github";
@@ -12,6 +12,13 @@ const credentialsSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
 });
+
+// Distinguishes an unverified email from a plain bad-credentials failure so
+// SignInForm can show a specific message and a resend option. NextAuth only
+// exposes `error=CredentialsSignin` in the redirect URL; `code` carries this.
+class EmailNotVerifiedError extends CredentialsSignin {
+  code = "email-not-verified";
+}
 
 export const {
   handlers: { GET, POST },
@@ -40,6 +47,8 @@ export const {
 
         const isValid = await bcrypt.compare(parsed.data.password, user.password);
         if (!isValid) return null;
+
+        if (!user.emailVerified) throw new EmailNotVerifiedError();
 
         return { id: user.id, name: user.name, email: user.email, image: user.image };
       },

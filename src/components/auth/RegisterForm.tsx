@@ -50,7 +50,7 @@ export function RegisterForm() {
     }
 
     toast.success("Account created", {
-      description: "You can now log in with your new account.",
+      description: "Check your email for a verification link before signing in.",
     });
     router.push("/sign-in");
   }
