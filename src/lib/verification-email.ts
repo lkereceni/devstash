@@ -7,6 +7,13 @@ import { resend } from "@/lib/resend";
 const FROM_ADDRESS = "DevStash <onboarding@resend.dev>";
 
 export async function sendVerificationEmail(email: string, verifyUrl: string): Promise<void> {
+  // Without a verified sending domain, Resend's sandbox only delivers to the
+  // account's own address — every other recipient 422s. Logging the link
+  // keeps registration testable for other accounts without one.
+  if (process.env.NODE_ENV !== "production") {
+    console.log(`[verification email] ${email} -> ${verifyUrl}`);
+  }
+
   await resend.emails.send({
     from: FROM_ADDRESS,
     to: email,
