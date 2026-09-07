@@ -6,7 +6,7 @@ Email Verification Toggle
 
 <!-- Not Started|In Progress|Completed -->
 
-Not Started
+In Progress
 
 ## Goals
 
@@ -27,7 +27,9 @@ Not Started
 - Env var chosen over a DB setting or admin UI (both would need new surfaces that don't exist yet) or a flags service (overkill here) — matches the project's existing pattern for this kind of toggle (`AUTH_*`, `RESEND_API_KEY`)
 - Naming: `EMAIL_VERIFICATION_ENABLED`, defaults to enabled when unset, so existing `.env` files keep today's behavior unless someone opts out
 - Touches the same area as the email-verification feature: `src/app/api/auth/register/route.ts`, `src/auth.ts`, `src/app/api/auth/resend-verification/route.ts`, and likely a small shared check in `src/lib/verification-email.ts`
-- There's a related, uncommitted fix on branch `fix/dev-verification-link-log` (logs the verification link to the server console in dev, since Resend's sandbox can't deliver to non-owner test addresses) — not yet committed or merged. Needs reconciling at `start`: commit/merge that fix first, or fold it into this branch
+- `fix/dev-verification-link-log` was committed and merged separately before this feature branched off, so `main` already had it
+- Implementation: `isEmailVerificationEnabled()` added to @src/lib/verification-email.ts (`process.env.EMAIL_VERIFICATION_ENABLED !== "false"`). Register route skips the token+email step and sets `emailVerified` at creation when disabled; `auth.ts`'s unverified check is gated on the flag too, so toggling off unblocks existing unverified accounts immediately, not just new ones; resend-verification returns its generic success response before touching the database when disabled. `.env.example` documents the var, commented out (defaults to enabled)
+- Verified live with two separate dev server runs: `EMAIL_VERIFICATION_ENABLED=false` — register then sign in immediately succeeds, DB shows `emailVerified` set at creation and no `VerificationToken` row, no email attempted; unset (default) — unchanged from the original feature, sign-in still blocks with the resend button
 
 ## History
 

@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
-import { sendVerificationEmail } from "@/lib/verification-email";
+import { isEmailVerificationEnabled, sendVerificationEmail } from "@/lib/verification-email";
 
 const PASSWORD_ROUNDS = 12;
 const VERIFICATION_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
@@ -44,26 +44,34 @@ export async function POST(request: Request) {
   }
 
   const hashedPassword = await bcrypt.hash(password, PASSWORD_ROUNDS);
+  const requireVerification = isEmailVerificationEnabled();
   const user = await prisma.user.create({
-    data: { name, email, password: hashedPassword },
-  });
-
-  const token = randomBytes(32).toString("hex");
-  await prisma.verificationToken.create({
     data: {
-      identifier: user.email,
-      token,
-      expires: new Date(Date.now() + VERIFICATION_TOKEN_TTL_MS),
+      name,
+      email,
+      password: hashedPassword,
+      ...(requireVerification ? {} : { emailVerified: new Date() }),
     },
   });
 
-  const verifyUrl = new URL("/api/auth/verify-email", request.url);
-  verifyUrl.searchParams.set("token", token);
+  if (requireVerification) {
+    const token = randomBytes(32).toString("hex");
+    await prisma.verificationToken.create({
+      data: {
+        identifier: user.email,
+        token,
+        expires: new Date(Date.now() + VERIFICATION_TOKEN_TTL_MS),
+      },
+    });
 
-  try {
-    await sendVerificationEmail(user.email, verifyUrl.toString());
-  } catch (error) {
-    console.error("Failed to send verification email:", error);
+    const verifyUrl = new URL("/api/auth/verify-email", request.url);
+    verifyUrl.searchParams.set("token", token);
+
+    try {
+      await sendVerificationEmail(user.email, verifyUrl.toString());
+    } catch (error) {
+      console.error("Failed to send verification email:", error);
+    }
   }
 
   return NextResponse.json(

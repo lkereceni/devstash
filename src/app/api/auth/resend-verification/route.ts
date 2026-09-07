@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
-import { sendVerificationEmail } from "@/lib/verification-email";
+import { isEmailVerificationEnabled, sendVerificationEmail } from "@/lib/verification-email";
 
 const VERIFICATION_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -29,6 +29,10 @@ export async function POST(request: Request) {
   // exists or is already verified, so this endpoint can't be used to probe
   // for registered emails.
   const genericResponse = NextResponse.json({ success: true }, { status: 200 });
+
+  if (!isEmailVerificationEnabled()) {
+    return genericResponse;
+  }
 
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user || user.emailVerified) {
