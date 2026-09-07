@@ -6,6 +6,7 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
+import { isEmailVerificationEnabled } from "@/lib/verification-email";
 import { authConfig } from "@/auth.config";
 
 const credentialsSchema = z.object({
@@ -48,7 +49,7 @@ export const {
         const isValid = await bcrypt.compare(parsed.data.password, user.password);
         if (!isValid) return null;
 
-        if (!user.emailVerified) throw new EmailNotVerifiedError();
+        if (isEmailVerificationEnabled() && !user.emailVerified) throw new EmailNotVerifiedError();
 
         return { id: user.id, name: user.name, email: user.email, image: user.image };
       },
