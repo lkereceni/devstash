@@ -36,7 +36,7 @@ Never touch `production` — read or write — unless I name it in that request.
 
 Destructive SQL (`DROP`, `DELETE`, `TRUNCATE`, `UPDATE`/`ALTER` without a narrow `WHERE`) needs my explicit go-ahead first, on `development` too.
 
-Migrations still run through Prisma per @context/coding-standards.md, not the Neon MCP migration tools. `DIRECT_URL` in `.env` points at `development`; a production deploy needs `DIRECT_URL=<prod url> npx prisma migrate deploy` set explicitly for that one command.
+Migrations still run through Prisma per @context/coding-standards.md, not the Neon MCP migration tools. `.env` currently has no `DIRECT_URL` set, so `prisma.config.ts` falls back to `DATABASE_URL` (the pooled connection) for migrations too — works, but isn't the documented best practice of migrating over a direct connection. Set `DIRECT_URL` to the `development` branch's direct connection string to close that gap. A production deploy needs `DIRECT_URL=<prod url> npx prisma migrate deploy` set explicitly for that one command regardless.
 
 ## Stack
 
@@ -70,7 +70,7 @@ Rules that matter:
 - **A feature owns its slice of the UI wherever it appears.** The sidebar's Types section is `features/items/ItemTypesNav`; the Collections section is `features/collections/CollectionsNav`. `components/layout/AppSidebar.tsx` only composes them.
 - **Dependency direction is one-way.** Today: `dashboard` → `items`, `dashboard` → `collections`, `collections` → `items`. Nothing imports `dashboard`. Don't add a reverse edge; if two features need each other, the shared part belongs in `src/lib/` or a new feature.
 - **Only a feature's `lib/` touches Prisma.** Components go through the feature's `lib/` — `items/lib/items.ts` and `collections/lib/collections.ts` are the only modules that import `@/lib/prisma`. Both, and `src/lib/prisma.ts` itself, start with `import "server-only";` so a client component that reaches for them fails at build instead of dragging the Neon adapter into the browser bundle.
-- **Every query is scoped to the current user.** Until NextAuth lands that means a `DEMO_USER_EMAIL` constant, applied to the item side as well as the collection side — `Item.collectionId` has no composite foreign key tying it to `Item.userId`, so a collection's own scope does not vouch for the items inside it.
+- **Every query is scoped to the current user.** NextAuth has landed, but the dashboard data layer hasn't been migrated onto it yet — item and collection queries still scope by a hardcoded `DEMO_USER_EMAIL` constant (`src/features/items/lib/items.ts`, `src/features/collections/lib/collections.ts`) rather than the signed-in session's user. `Item.collectionId` has no composite foreign key tying it to `Item.userId`, so a collection's own scope does not vouch for the items inside it.
 
 **Read `node_modules/next/dist/docs/` before writing Next.js code.** This is v16 and the conventions differ from older App Router material. Two that bite immediately:
 
@@ -84,7 +84,7 @@ Rules that matter:
 ## Deliberate current state
 
 - The dashboard UI is built out at `/dashboard`; `src/app/page.tsx` is still a bare placeholder.
-- Items and collections render from Neon via Prisma (`src/features/*/lib/`). There is no auth or API yet, and the signed-in user is still a mock — `src/features/user/lib/mock-user.ts`, the last stand-in left.
+- Items and collections render from Neon via Prisma (`src/features/*/lib/`). Auth is fully built — NextAuth v5 with GitHub OAuth and credentials (email/password), custom `/sign-in` and `/register` pages, email verification on registration via Resend (toggleable with `EMAIL_VERIFICATION_ENABLED`) — and the sidebar shows the real signed-in user; there is no mock user left. The dashboard's own data queries haven't caught up to this yet, though — see the `DEMO_USER_EMAIL` note above.
 - The sidebar and cards link to `/items/[type]`, `/items/[type]/[id]`, `/collections` and `/collections/[id]`. **None of those routes exist yet** — the links 404 on purpose.
 - `src/app/favicon.ico` is still the stock Next.js logo.
 - `public/` does not exist. Recreate the directory if static assets are needed; Next.js picks it up with no config.
