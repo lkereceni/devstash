@@ -1,20 +1,30 @@
 # Current Feature
 
-<!-- Feature Name -->
+Sidebar User Menu: Profile Link
 
 ## Status
 
 <!-- Not Started|In Progress|Completed -->
 
-Not Started
+In Progress
 
 ## Goals
 
 <!-- Goals & requirements -->
 
+- Remove the standalone gear/Settings icon button that sits next to the user avatar in the sidebar footer
+- Add a "Profile" entry inside the avatar's dropdown menu, linking to `/profile`, positioned above "Sign out"
+
 ## Notes
 
 <!-- Any extra notes -->
+
+Inline description, no spec file.
+
+- Current implementation: `src/features/user/components/SidebarUserMenu.tsx` — a `Button` with a `Settings` icon (`asChild` wrapping a `Link` to `/profile`) sits outside the `DropdownMenu`, next to the avatar trigger; `DropdownMenuContent` currently holds only the "Sign out" item
+- After the change, the dropdown should read: Profile, then Sign out
+- The gear button is already hidden in the collapsed icon rail (`group-data-[collapsible=icon]:hidden`), so removing it entirely leaves nothing extra to handle for that state
+- `Settings` import becomes unused once the button is removed; drop it
 
 ## History
 
