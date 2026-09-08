@@ -6,9 +6,9 @@
 2. Run `npm run build`. It must pass — `context/ai-interaction.md`: *"Do NOT commit without permission and until the build passes. If build fails, fix the issues first."*
 3. Confirm the change works in the browser.
 
-## 2. Commit — ask first
+## 2. Commit
 
-Show the user what is staged and the proposed message, then **wait for approval**. Never auto-commit.
+This command runs the commit → push → merge → delete-branch sequence automatically, without asking at each step — that's what distinguishes `/feature complete` from normal work, where nothing gets committed without asking. Show the user what is staged and the message being used, then proceed.
 
 Conventional commit, scoped to the feature:
 
@@ -34,9 +34,9 @@ git merge --no-ff <branch>
 git push
 ```
 
-## 4. Delete the branch — ask first
+## 4. Delete the branch
 
-`context/ai-interaction.md`: *"Ask to delete the branch once merged."* Once confirmed:
+Part of the same automatic sequence — no separate confirmation needed here either.
 
 ```bash
 git branch -d <branch>
