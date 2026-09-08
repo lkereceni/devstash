@@ -1,20 +1,35 @@
 # Current Feature
 
-<!-- Feature Name -->
+Profile Page
 
 ## Status
 
 <!-- Not Started|In Progress|Completed -->
 
-Not Started
+In Progress
 
 ## Goals
 
 <!-- Goals & requirements -->
 
+- Create profile page at `/profile` route (protected — requires authentication)
+- Display user info: email, name, avatar (GitHub avatar or initials fallback), account creation date
+- Show usage stats: total items, total collections, breakdown by item type
+- Change password action, shown only for email/password users (not GitHub OAuth)
+- Delete account action with a confirmation dialog
+- Follow existing codebase patterns for data fetching and components
+
 ## Notes
 
 <!-- Any extra notes -->
+
+Spec: `context/features/profile-spec.md`
+
+- Avatar logic mirrors the existing `UserAvatar` component: GitHub image if present, otherwise initials from name/email
+- "Change password" must be hidden for GitHub-only accounts — needs a way to tell email vs OAuth users apart (e.g. presence of `User.password`)
+- Item type breakdown: snippets, prompts, notes, commands, links, files, images
+- `/profile` currently 404s on purpose (per @CLAUDE.md) — this feature is what fills it in
+- The gear icon in `SidebarUserMenu` already links to `/profile`, from Auth Phase 3
 
 ## History
 

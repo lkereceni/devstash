@@ -6,3 +6,9 @@ export interface User {
   avatarUrl: string | null;
   isPro: boolean;
 }
+
+export interface UserProfile extends User {
+  createdAt: string;
+  /** False for a GitHub-only account, which has no password to change. */
+  hasPassword: boolean;
+}
