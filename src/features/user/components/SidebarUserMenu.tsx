@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { signOut } from "next-auth/react";
-import { LogOut, Settings } from "lucide-react";
+import { LogOut, User as UserIcon } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { UserAvatar } from "@/features/user/components/UserAvatar";
@@ -35,23 +35,19 @@ export function SidebarUserMenu({ user }: { user: User }) {
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" side="top" className="w-56">
+          <DropdownMenuItem asChild>
+            <Link href="/profile">
+              <UserIcon aria-hidden />
+              Profile
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem variant="destructive" onSelect={() => signOut({ callbackUrl: "/sign-in" })}>
             <LogOut aria-hidden />
             Sign out
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      <Button
-        asChild
-        variant="ghost"
-        size="icon-sm"
-        aria-label="Profile"
-        className="group-data-[collapsible=icon]:hidden"
-      >
-        <Link href="/profile">
-          <Settings aria-hidden />
-        </Link>
-      </Button>
     </div>
   );
 }
