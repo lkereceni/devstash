@@ -2,19 +2,44 @@
 
 <!-- Feature Name -->
 
+Rate Limiting for Auth
+
 ## Status
 
 <!-- Not Started|In Progress|Completed -->
 
-Not Started
+In Progress
 
 ## Goals
 
 <!-- Goals & requirements -->
 
+- Reusable rate limiting utility (`src/lib/rate-limit.ts`) built on Upstash Redis + `@upstash/ratelimit`, sliding window algorithm
+- Rate limit these auth endpoints:
+  - `/api/auth/callback/credentials` (login) — 5 attempts / 15 min, keyed by IP + email
+  - `/api/auth/register` — 3 attempts / 1 hour, keyed by IP
+  - `/api/auth/forgot-password` — 3 attempts / 1 hour, keyed by IP
+  - `/api/auth/reset-password` — 5 attempts / 15 min, keyed by IP
+  - `/api/auth/resend-verification` — 3 attempts / 15 min, keyed by IP + email
+- Exceeding the limit returns 429 with `{ error: "Too many attempts. Please try again in X minutes." }` and a `Retry-After` header
+- Rate limit checks return `{ success, remaining, reset }`
+- Frontend surfaces the 429 via a toast
+- Fail open (allow the request) if Upstash is unreachable
+
 ## Notes
 
 <!-- Any extra notes -->
+
+Spec: `context/features/rate-limiting-spec.md`
+
+- New env vars: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` (documented in `.env.example`); both were already set in the local `.env`, so testing ran against real Upstash Redis rather than the fail-open path.
+- Resolved the open question from `load`: `/api/auth/callback/credentials` is NextAuth's own route, not one of ours, so the login limit is checked inside the Credentials provider's `authorize(credentials, request)` in `src/auth.ts` — `request` is the raw `Request`, confirmed from `@auth/core`'s type declarations, giving access to the same IP-extraction helper the route handlers use. A rate-limited attempt throws a new `RateLimitedError` (a `CredentialsSignin` subclass, `code: "rate-limited"`), mirroring the existing `EmailNotVerifiedError` pattern; the check runs after zod-parsing credentials (need the email to build the IP+email key) but before the Prisma lookup/bcrypt compare, so a limited request never touches the DB.
+- Per-route checks only, no middleware — matches the "out of scope for this pass" note from `load`.
+- Implemented: `src/lib/rate-limit.ts` (Upstash `Redis` + `Ratelimit.slidingWindow`, one limiter per endpoint via `rateLimiters`, `checkRateLimit` fails open — returns `{success: true, remaining: Infinity, reset: 0}` — both when Upstash env vars are unset and when the Upstash call itself throws, `getClientIp` reading `x-forwarded-for`/`x-real-ip`, `rateLimitExceededResponse` building the 429 with `Retry-After` in seconds and the `{error: "Too many attempts. Please try again in X minutes."}` body); wired into `register`, `forgot-password`, `reset-password` (IP only), `resend-verification` (IP+email, checked after schema validation so the key uses the validated address) and the credentials `authorize` (IP+email, as above).
+- Frontend: `SignInForm`'s `ERROR_MESSAGES` gained a `rate-limited` entry and now also fires `toast.error` for that specific code (every other sign-in error stays inline-only, unchanged); `RegisterForm` and `ResetPasswordForm` already had an inline-error branch on a failed response, extended to also toast when `response.status === 429`; `ForgotPasswordForm` and `SignInForm`'s `handleResendVerification` previously ignored the response body entirely (deliberate, to not leak account existence) — both now special-case `response.status === 429` to toast the server's message before falling into the generic "check your inbox" success state, since a 429 doesn't depend on whether the account exists and so isn't an enumeration vector.
+- Verified live against real Upstash Redis rather than assumed: `resend-verification` 429s on the 4th call within its 3/15min window with a `Retry-After` header matching the body's "X minutes"; `register` 429s on the 4th call within its 3/hour IP window even across different emails, confirming the key is IP-only; the credentials login path was driven through NextAuth's real CSRF+callback flow (`/api/auth/csrf` then `POST /api/auth/callback/credentials`) and the 6th attempt's redirect `Location` carried `code=rate-limited`, confirming the 5/15min window and the `authorize`-level check. A Playwright pass on `/sign-in` confirmed the browser-side UI: the inline alert renders the exact "Too many sign-in attempts..." text, and the sonner toast fires with the same message (visible in the a11y snapshot immediately after the rate-limited submit; a separate check on `/sign-in?verified=1` confirmed the toast mechanism itself renders fine, ruling out a toast-specific regression — the rate-limit toast's own screenshot just missed sonner's ~4s auto-dismiss window). No console errors.
+- Left four throwaway accounts in the `development` Neon branch from register-endpoint rate-limit testing (`ratelimit-reg-1@example.com` through `-3@example.com`, all created before the 4th call 429'd) — not cleaned up since deleting rows needs explicit go-ahead per `CLAUDE.md`, same precedent as prior auth-phase sessions.
+- Not tested: behavior when Upstash is genuinely unreachable (network failure rather than unset env vars) — the fail-open `catch` in `checkRateLimit` is implemented but only exercised by inspection, not a live outage.
 
 ## History
 

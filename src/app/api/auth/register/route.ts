@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
 import { isEmailVerificationEnabled, sendVerificationEmail } from "@/lib/verification-email";
+import { checkRateLimit, getClientIp, rateLimitExceededResponse, rateLimiters } from "@/lib/rate-limit";
 
 const PASSWORD_ROUNDS = 12;
 const VERIFICATION_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
@@ -23,6 +24,9 @@ const registerSchema = z
   });
 
 export async function POST(request: Request) {
+  const rateLimitResult = await checkRateLimit(rateLimiters.register, getClientIp(request));
+  if (!rateLimitResult.success) return rateLimitExceededResponse(rateLimitResult);
+
   const body = await request.json();
   const parsed = registerSchema.safeParse(body);
 

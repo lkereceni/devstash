@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit, getClientIp, rateLimitExceededResponse, rateLimiters } from "@/lib/rate-limit";
 
 const PASSWORD_ROUNDS = 12;
 
@@ -22,6 +23,9 @@ const resetPasswordSchema = z
   });
 
 export async function POST(request: Request) {
+  const rateLimitResult = await checkRateLimit(rateLimiters.resetPassword, getClientIp(request));
+  if (!rateLimitResult.success) return rateLimitExceededResponse(rateLimitResult);
+
   const body = await request.json();
   const parsed = resetPasswordSchema.safeParse(body);
 

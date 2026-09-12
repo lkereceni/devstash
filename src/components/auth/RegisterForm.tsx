@@ -45,7 +45,9 @@ export function RegisterForm() {
     setIsSubmitting(false);
 
     if (!result.success) {
-      setError(result.error ?? "Something went wrong creating your account.");
+      const message = result.error ?? "Something went wrong creating your account.";
+      setError(message);
+      if (response.status === 429) toast.error(message);
       return;
     }
 
