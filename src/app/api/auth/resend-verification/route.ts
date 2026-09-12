@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
 import { isEmailVerificationEnabled, sendVerificationEmail } from "@/lib/verification-email";
+import { checkRateLimit, getClientIp, rateLimitExceededResponse, rateLimiters } from "@/lib/rate-limit";
 
 const VERIFICATION_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -24,6 +25,12 @@ export async function POST(request: Request) {
   }
 
   const { email } = parsed.data;
+
+  const rateLimitResult = await checkRateLimit(
+    rateLimiters.resendVerification,
+    `${getClientIp(request)}:${email}`,
+  );
+  if (!rateLimitResult.success) return rateLimitExceededResponse(rateLimitResult);
 
   // Always respond with the same success shape whether or not an account
   // exists or is already verified, so this endpoint can't be used to probe

@@ -2,10 +2,15 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+
+interface ForgotPasswordResponse {
+  error?: string;
+}
 
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
@@ -16,13 +21,20 @@ export function ForgotPasswordForm() {
     event.preventDefault();
     setIsSubmitting(true);
 
-    await fetch("/api/auth/forgot-password", {
+    const response = await fetch("/api/auth/forgot-password", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
     });
 
     setIsSubmitting(false);
+
+    if (response.status === 429) {
+      const result: ForgotPasswordResponse = await response.json();
+      toast.error(result.error ?? "Too many attempts. Please try again later.");
+      return;
+    }
+
     setIsSubmitted(true);
   }
 

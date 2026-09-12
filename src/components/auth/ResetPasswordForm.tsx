@@ -41,7 +41,9 @@ export function ResetPasswordForm({ token }: { token: string }) {
     setIsSubmitting(false);
 
     if (!result.success) {
-      setError(result.error ?? "Something went wrong resetting your password.");
+      const message = result.error ?? "Something went wrong resetting your password.";
+      setError(message);
+      if (response.status === 429) toast.error(message);
       return;
     }
 

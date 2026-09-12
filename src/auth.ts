@@ -7,6 +7,7 @@ import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
 import { isEmailVerificationEnabled } from "@/lib/verification-email";
+import { checkRateLimit, getClientIp, rateLimiters } from "@/lib/rate-limit";
 import { authConfig } from "@/auth.config";
 
 const credentialsSchema = z.object({
@@ -19,6 +20,12 @@ const credentialsSchema = z.object({
 // exposes `error=CredentialsSignin` in the redirect URL; `code` carries this.
 class EmailNotVerifiedError extends CredentialsSignin {
   code = "email-not-verified";
+}
+
+// `code` ends up in the redirect URL, so it stays a fixed, non-sensitive
+// string rather than carrying the exact retry time.
+class RateLimitedError extends CredentialsSignin {
+  code = "rate-limited";
 }
 
 export const {
@@ -37,9 +44,13 @@ export const {
         email: {},
         password: {},
       },
-      authorize: async (credentials) => {
+      authorize: async (credentials, request) => {
         const parsed = credentialsSchema.safeParse(credentials);
         if (!parsed.success) return null;
+
+        const identifier = `${getClientIp(request)}:${parsed.data.email}`;
+        const rateLimitResult = await checkRateLimit(rateLimiters.login, identifier);
+        if (!rateLimitResult.success) throw new RateLimitedError();
 
         const user = await prisma.user.findUnique({
           where: { email: parsed.data.email },

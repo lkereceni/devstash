@@ -17,6 +17,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   "email-not-verified": "Verify your email before signing in.",
   "invalid-token": "That verification link is invalid.",
   "expired-token": "That verification link has expired.",
+  "rate-limited": "Too many sign-in attempts. Please try again in 15 minutes.",
   OAuthAccountNotLinked: "That email is already registered with a different sign-in method.",
 };
 
@@ -68,8 +69,10 @@ export function SignInForm({
 
     if (!result || result.error) {
       const code = result?.code ?? result?.error ?? "CredentialsSignin";
-      setError(errorMessage(code));
+      const message = errorMessage(code);
+      setError(message);
       setNeedsVerification(code === "email-not-verified");
+      if (code === "rate-limited") toast.error(message);
       return;
     }
 
@@ -80,13 +83,20 @@ export function SignInForm({
   async function handleResendVerification() {
     setIsResending(true);
 
-    await fetch("/api/auth/resend-verification", {
+    const response = await fetch("/api/auth/resend-verification", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
     });
 
     setIsResending(false);
+
+    if (response.status === 429) {
+      const result: { error?: string } = await response.json();
+      toast.error(result.error ?? "Too many attempts. Please try again later.");
+      return;
+    }
+
     toast.success("Verification email sent", {
       description: "Check your inbox for a new link.",
     });

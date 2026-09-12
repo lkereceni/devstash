@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
 import { sendPasswordResetEmail } from "@/lib/password-reset-email";
+import { checkRateLimit, getClientIp, rateLimitExceededResponse, rateLimiters } from "@/lib/rate-limit";
 
 const PASSWORD_RESET_TOKEN_TTL_MS = 60 * 60 * 1000;
 
@@ -18,6 +19,9 @@ const forgotPasswordSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const rateLimitResult = await checkRateLimit(rateLimiters.forgotPassword, getClientIp(request));
+  if (!rateLimitResult.success) return rateLimitExceededResponse(rateLimitResult);
+
   const body = await request.json();
   const parsed = forgotPasswordSchema.safeParse(body);
 
