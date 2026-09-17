@@ -11,7 +11,7 @@ export default function Loading() {
         <Skeleton className="h-5 w-20" />
       </header>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {Array.from({ length: ITEM_CARD_COUNT }).map((_, index) => (
           <Card key={index} className="border-l-4 border-l-border">
             <CardHeader>
