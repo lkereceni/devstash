@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 
 interface ResetPasswordResponse {
   success: boolean;
@@ -85,6 +86,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
         </p>
       ) : null}
       <Button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? <Spinner /> : null}
         {isSubmitting ? "Resetting…" : "Reset password"}
       </Button>
     </form>

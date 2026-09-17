@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 
 interface RegisterResponse {
   success: boolean;
@@ -110,6 +111,7 @@ export function RegisterForm() {
         </p>
       ) : null}
       <Button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? <Spinner /> : null}
         {isSubmitting ? "Creating account…" : "Create account"}
       </Button>
       <p className="text-center text-sm text-muted-foreground">

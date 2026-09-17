@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 
 interface ForgotPasswordResponse {
   error?: string;
@@ -60,6 +61,7 @@ export function ForgotPasswordForm() {
         />
       </div>
       <Button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? <Spinner /> : null}
         {isSubmitting ? "Sending…" : "Send reset link"}
       </Button>
       <p className="text-center text-sm text-muted-foreground">

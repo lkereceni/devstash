@@ -23,6 +23,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Spinner } from "@/components/ui/spinner";
 import { deleteAccountAction } from "@/features/user/actions";
 
 export function DeleteAccountCard() {
@@ -70,6 +71,7 @@ export function DeleteAccountCard() {
                 disabled={isDeleting}
                 onClick={handleConfirm}
               >
+                {isDeleting ? <Spinner /> : null}
                 {isDeleting ? "Deleting…" : "Delete account"}
               </AlertDialogAction>
             </AlertDialogFooter>
