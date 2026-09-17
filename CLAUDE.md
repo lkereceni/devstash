@@ -14,14 +14,16 @@ Read the following to get the full context of the project:
 ## Commands
 
 ```bash
-npm run dev      # dev server (Turbopack) on :3000
-npm run build    # production build; also runs the TypeScript check
-npm run start    # serve the production build
-npm run lint     # bare `eslint` (not `next lint`)
-npx tsc --noEmit # type check on its own
+npm run dev        # dev server (Turbopack) on :3000
+npm run build      # production build; also runs the TypeScript check
+npm run start      # serve the production build
+npm run lint       # bare `eslint` (not `next lint`)
+npm run test       # Vitest, single run
+npm run test:watch # Vitest, watch mode
+npx tsc --noEmit   # type check on its own
 ```
 
-There is no test runner configured and no test files. Adding one is a green-field decision — don't assume Jest/Vitest conventions exist.
+**Vitest tests server actions and utilities only — never components.** Config is `vitest.config.mts` (an `.mts` file so Vite's native config loader treats it as ESM without needing `"type": "module"` in `package.json`, which would ripple into every other `.js`/`.ts` file in the repo); `test.include` is `src/**/*.test.ts` — deliberately `.test.ts`, not `.test.tsx`, so a component test can't be picked up by a naming mistake. Test environment is plain `node`, no jsdom/happy-dom and no `@vitejs/plugin-react` — nothing under test renders JSX. A "server action" test (`src/features/user/actions.test.ts` is the example) mocks its dependencies (`@/auth`, the feature's `lib/`) with `vi.mock` + `vi.hoisted` rather than hitting Prisma or Neon, so the suite stays fast and needs no database. `@types/node` is pinned to `^24` to match the installed Node major (Vitest 5's peer range needs `@types/node >= 22`); don't unpin it back to `^20`.
 
 ## Neon MCP
 
@@ -40,7 +42,7 @@ Migrations still run through Prisma per @context/coding-standards.md, not the Ne
 
 ## Stack
 
-Next.js 16.3.1 (App Router, Turbopack), React 19.2, TypeScript strict, Tailwind CSS v4.
+Next.js 16.3.5 (App Router, Turbopack), React 19.2, TypeScript strict, Tailwind CSS v4.
 
 ## Architecture notes
 
@@ -88,3 +90,4 @@ Rules that matter:
 - The sidebar and cards link to `/items/[type]`, `/items/[type]/[id]`, `/collections` and `/collections/[id]`. **None of those routes exist yet** — the links 404 on purpose.
 - `src/app/favicon.ico` is still the stock Next.js logo.
 - `public/` does not exist. Recreate the directory if static assets are needed; Next.js picks it up with no config.
+- `npm audit` reports two known, unfixed high-severity issues: `deepmerge-ts` and `mysql2`, both transitive dependencies of the `prisma` CLI package (`mysql2` is Prisma's bundled MySQL driver — unused, since this project is Postgres/Neon-only). The only fix `npm audit fix --force` offers is downgrading `prisma` from `7.x` to `6.19.3`, a major-version regression that would likely break this project's Prisma 7 setup (the custom generator output to `src/generated/prisma`, `prisma.config.ts`'s format, the Neon driver-adapter model) for low real exposure (dev-tool-only, not reachable by untrusted input, not shipped to the app bundle). Left as-is until Prisma bumps its own transitive pins — don't force this downgrade without explicit go-ahead.
