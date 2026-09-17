@@ -110,6 +110,12 @@ src/
 - Return `{ success, data, error }` pattern from actions
 - Display user-friendly error messages via toast
 
+## Testing
+
+- Vitest (`npm run test` / `npm run test:watch`), scoped to server actions and utilities — never components. See `context/ai-interaction.md`'s Testing section for when a test is warranted.
+- Test files sit next to what they test, named `*.test.ts` (not `.test.tsx` — that's the mechanism that keeps components out of scope, since `vitest.config.mts` only picks up `.test.ts`)
+- Server Action tests mock their dependencies (`@/auth`, the feature's `lib/`) with `vi.mock`/`vi.hoisted` — no live Prisma/Neon calls in a unit test
+
 ## Code Quality
 
 - No commented-out code unless specified
