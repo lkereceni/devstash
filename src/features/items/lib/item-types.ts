@@ -40,12 +40,23 @@ export function isProItemType(type: ItemTypeSummary): boolean {
   return PRO_ITEM_TYPE_NAMES.has(type.name);
 }
 
-/** Route for an item type listing, e.g. Snippets -> /items/snippets. */
-export function getItemTypeHref(type: ItemTypeSummary): string {
-  const slug = type.name
+/** Derives the `/items/[type]` route segment from a type's name. */
+function slugifyItemTypeName(name: string): string {
+  return name
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
+}
 
-  return `/items/${slug}`;
+/** Route for an item type listing, e.g. Snippets -> /items/snippets. */
+export function getItemTypeHref(type: ItemTypeSummary): string {
+  return `/items/${slugifyItemTypeName(type.name)}`;
+}
+
+/** Whether a type is the one a `/items/[type]` route segment refers to. */
+export function matchesItemTypeSlug(
+  type: ItemTypeSummary,
+  slug: string
+): boolean {
+  return slugifyItemTypeName(type.name) === slug;
 }
