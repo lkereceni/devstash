@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Spinner } from "@/components/ui/spinner";
 import { GitHubIcon } from "@/components/auth/GitHubIcon";
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -122,7 +123,7 @@ export function SignInForm({
         disabled={isGitHubSubmitting}
         onClick={handleGitHubSignIn}
       >
-        <GitHubIcon className="size-4" />
+        {isGitHubSubmitting ? <Spinner /> : <GitHubIcon className="size-4" />}
         Sign in with GitHub
       </Button>
 
@@ -176,10 +177,12 @@ export function SignInForm({
             disabled={isResending || !email}
             onClick={handleResendVerification}
           >
+            {isResending ? <Spinner /> : null}
             {isResending ? "Sending…" : "Resend verification email"}
           </Button>
         ) : null}
         <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? <Spinner /> : null}
           {isSubmitting ? "Signing in…" : "Sign in"}
         </Button>
       </form>
