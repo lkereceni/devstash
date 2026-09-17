@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { Prisma } from "@/generated/prisma/client";
+import { matchesItemTypeSlug } from "@/features/items/lib/item-types";
 import type {
   ItemStats,
   ItemSummary,
@@ -39,6 +40,20 @@ export async function getPinnedItems(): Promise<ItemSummary[]> {
 
 export async function getRecentItems(limit: number): Promise<ItemSummary[]> {
   return findItems({}, limit);
+}
+
+/**
+ * Resolves a `/items/[type]` route segment back to its item type. There is no
+ * slug column on `item_types`, so this matches the same derivation
+ * `getItemTypeHref` uses against every type visible to the current user.
+ */
+export async function getItemTypeBySlug(slug: string): Promise<ItemType | null> {
+  const types = await getItemTypes();
+  return types.find((type) => matchesItemTypeSlug(type, slug)) ?? null;
+}
+
+export async function getItemsByType(typeId: string): Promise<ItemSummary[]> {
+  return findItems({ typeId });
 }
 
 export async function getItemStats(): Promise<ItemStats> {
