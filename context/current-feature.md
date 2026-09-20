@@ -1,20 +1,49 @@
 # Current Feature
 
 <!-- Feature Name -->
+Item Create
 
 ## Status
 
 <!-- Not Started|In Progress|Completed -->
 
-Not Started
+In Progress
 
 ## Goals
 
 <!-- Goals & requirements -->
 
+- "New Item" button in the top bar opens a shadcn `Dialog` for creating an item (currently an unwired placeholder)
+- Type selector: snippet, prompt, command, note, link
+- Fields shown based on selected type:
+  - All types: title (required), description, tags
+  - snippet/command: content, language
+  - prompt/note: content
+  - link: URL (required)
+- Server Action `createItem` with Zod validation
+- A query function that inserts the item, called `createItem`
+- Toast on success, close modal and refresh
+
 ## Notes
 
 <!-- Any extra notes -->
+Spec: `context/features/item-create-spec.md`
+
+- Spec names `lib/db/items.ts` for the query function; every prior items feature (list view, edit, delete) instead used the feature's own @src/features/items/lib/items.ts and @src/features/items/actions.ts, per the one-data-layer-per-feature rule in @CLAUDE.md — `createItem` should follow that same precedent unless told otherwise.
+- Spec's type list (snippet, prompt, command, note, link) is a subset of the 7 seeded system types (also file, image) — file/image presumably stay unbuilt here since they need upload handling, not just form fields.
+- Existing `OWNED_BY_CURRENT_USER` (`DEMO_USER_EMAIL`) scoping gap in `items/lib/items.ts` — `createItem` should decide whether new items are written under that same stand-in or the real session; worth confirming during `start` rather than assuming.
+- Tags reuse the seed's `connectOrCreate` pattern on the unique `[userId, name]` tag, same as `updateItem`.
+
+Decisions made during `start`, to confirm in `review`:
+- `createItem` writes new items under the `DEMO_USER_EMAIL` stand-in (looked up fresh via Prisma, not the real session id from `auth()`), matching every other query in `items/lib/items.ts` — using the real session id instead would create items invisible to every demo-user-scoped list/dashboard query, which seemed like the wrong call for a still-demo-scoped app.
+- Only 5 of the 7 seeded types are creatable (Snippets, Prompts, Commands, Notes, Links) — Files/Images excluded since they need upload handling this dialog doesn't have. New `isCreatableItemType` predicate in @src/features/items/lib/item-types.ts, same pattern as the existing `isProItemType`/`isContentEditableItemType`/etc.
+- The type-specific fields (content/language/url) reuse the *existing* `isContentEditableItemType`/`isLanguageEditableItemType`/`isUrlEditableItemType` predicates from the edit-mode feature rather than duplicating them — their built-in-type sets already match the create spec's field list exactly.
+- "URL required for Links" is enforced twice: client-side (Create button disabled) and server-side in `createItemAction` (fetches `getItemTypes()`, matches the type by id, checks `isUrlEditableItemType`) — mirrors the existing double-enforcement pattern for "title required".
+- TopBar's "New Item" button needed to open a dialog owned by the `items` feature, but `TopBar` (in `components/layout/`, an outsider to the feature) had to become a client component to wire the click. Following "a feature owns its UI wherever it renders" plus the `ItemTypesNav`/`ItemTypesNavGroup` split precedent, added `ItemCreateDialogProvider` (async server component, fetches creatable types) + `ItemCreateDialogClient` (owns open state, exports `useItemCreateDialog`) + `ItemCreateDialog` (the form). `AppShell.tsx` now wraps `TopBar` + children in `ItemCreateDialogProvider` (previously `ItemDrawerProvider` wrapped only `children`, since nothing outside it needed drawer access).
+- Deviation from "import features only through their barrel": `TopBar.tsx` imports `useItemCreateDialog` directly from `@/features/items/components/ItemCreateDialogClient` instead of `@/features/items`. Confirmed live: importing it via the barrel fails the build — Next's client-boundary check bundles a barrel's *entire* re-export graph into any client component that imports from it at all, and the `items` barrel also re-exports `lib/items.ts`'s `server-only`-guarded functions, so `TopBar` (the first client component to import from this barrel) dragged the whole server-only chain into the client bundle and failed with the same `'server-only' cannot be imported from a Client Component` error @CLAUDE.md documents as an intentional guard elsewhere. `useItemCreateDialog` is deliberately *not* re-exported from the barrel (mirrors `useItemDrawer`, also not barrel-exported) so this stays a one-off, visible exception rather than an invitation to reach into the feature generally.
+- shadcn's `add dialog`/`add select` reintroduced the same `cn`-package import bug seen before on `alert-dialog.tsx`/`textarea.tsx` — this time it also touched `button.tsx` (content otherwise unchanged, confirmed with `shadcn diff button` before accepting the overwrite). Fixed all three (`dialog.tsx`, `select.tsx`, `button.tsx`) to import `cn` from `@/lib/utils`, `npm uninstall cn` again — net-zero on `package.json`.
+
+Bug found and fixed in `review`: switching the type selector didn't clear the previous type's content/language/url state. Repro: select Links, type an invalid URL, switch to Snippets (URL field hides but its state persists), fill only a title, click Create — the stray invalid URL was still submitted and the server-side zod `.url()` check rejected it with "Enter a valid URL", a confusing error with no visible field to fix, even though Snippets doesn't use a URL at all. Fixed by clearing `content`/`language`/`url` in the type `Select`'s `onValueChange` alongside `setTypeId`. Verified live: same repro now creates the Snippet cleanly with no error.
 
 ## History
 

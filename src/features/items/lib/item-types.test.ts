@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   getItemTypeHref,
   isContentEditableItemType,
+  isCreatableItemType,
   isLanguageEditableItemType,
   isProItemType,
   isUrlEditableItemType,
@@ -80,5 +81,20 @@ describe("isUrlEditableItemType", () => {
 
   it("does not flag a type with no URL field", () => {
     expect(isUrlEditableItemType(makeType({ name: "Snippets" }))).toBe(false);
+  });
+});
+
+describe("isCreatableItemType", () => {
+  it("flags the types the create dialog supports", () => {
+    expect(isCreatableItemType(makeType({ name: "Snippets" }))).toBe(true);
+    expect(isCreatableItemType(makeType({ name: "Prompts" }))).toBe(true);
+    expect(isCreatableItemType(makeType({ name: "Commands" }))).toBe(true);
+    expect(isCreatableItemType(makeType({ name: "Notes" }))).toBe(true);
+    expect(isCreatableItemType(makeType({ name: "Links" }))).toBe(true);
+  });
+
+  it("does not flag types that need file upload handling", () => {
+    expect(isCreatableItemType(makeType({ name: "Files" }))).toBe(false);
+    expect(isCreatableItemType(makeType({ name: "Images" }))).toBe(false);
   });
 });

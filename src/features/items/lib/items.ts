@@ -185,6 +185,55 @@ export async function deleteItem(id: string): Promise<boolean> {
   return true;
 }
 
+export interface CreateItemData {
+  typeId: string;
+  title: string;
+  description: string | null;
+  content: string | null;
+  url: string | null;
+  language: string | null;
+  tags: string[];
+}
+
+/**
+ * The "New Item" dialog's save. Every item created here is text-based — the
+ * creatable types (see `isCreatableItemType`) have no file upload yet.
+ * Written under the same demo-user stand-in every other query in this file
+ * uses, so a newly created item shows up in the lists that read it back.
+ */
+export async function createItem(data: CreateItemData): Promise<ItemDetail> {
+  const owner = await prisma.user.findUniqueOrThrow({
+    where: { email: DEMO_USER_EMAIL },
+    select: { id: true },
+  });
+
+  const row = await prisma.item.create({
+    data: {
+      title: data.title,
+      description: data.description,
+      contentType: "text",
+      content: data.content,
+      url: data.url,
+      language: data.language,
+      userId: owner.id,
+      typeId: data.typeId,
+      tags: {
+        create: data.tags.map((name) => ({
+          tag: {
+            connectOrCreate: {
+              where: { userId_name: { userId: owner.id, name } },
+              create: { name, userId: owner.id },
+            },
+          },
+        })),
+      },
+    },
+    select: ITEM_DETAIL_SELECT,
+  });
+
+  return mapItemDetail(row);
+}
+
 export async function getItemStats(): Promise<ItemStats> {
   const [total, favorites] = await Promise.all([
     prisma.item.count({ where: OWNED_BY_CURRENT_USER }),

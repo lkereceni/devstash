@@ -1,4 +1,5 @@
 export { ItemCard } from "./components/ItemCard";
+export { ItemCreateDialogProvider } from "./components/ItemCreateDialogProvider";
 export { ItemDrawerProvider } from "./components/ItemDrawerProvider";
 export { ItemRow } from "./components/ItemRow";
 export { ItemTypeIcon } from "./components/ItemTypeIcon";
