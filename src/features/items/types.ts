@@ -32,3 +32,23 @@ export interface ItemStats {
   total: number;
   favorites: number;
 }
+
+/** The full item, as the drawer's detail view needs it. */
+export interface ItemDetail {
+  id: string;
+  title: string;
+  description: string | null;
+  type: ItemTypeSummary;
+  tags: string[];
+  isFavorite: boolean;
+  isPinned: boolean;
+  contentType: string;
+  content: string | null;
+  url: string | null;
+  language: string | null;
+  fileName: string | null;
+  fileSize: number | null;
+  collection: { id: string; name: string } | null;
+  createdAt: string;
+  updatedAt: string;
+}

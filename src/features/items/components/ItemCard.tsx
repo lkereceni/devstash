@@ -1,12 +1,13 @@
+"use client";
+
 import { Pin, Star } from "lucide-react";
-import Link from "next/link";
 import type { CSSProperties } from "react";
 
 import { ItemTypeIcon } from "@/features/items/components/ItemTypeIcon";
+import { useItemDrawer } from "@/features/items/components/ItemDrawerProvider";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatShortDate } from "@/features/items/lib/format";
-import { getItemTypeHref } from "@/features/items/lib/item-types";
 import type { ItemSummary } from "@/features/items/types";
 
 interface ItemCardProps {
@@ -15,7 +16,7 @@ interface ItemCardProps {
 
 export function ItemCard({ item }: ItemCardProps) {
   const { type } = item;
-  const href = `${getItemTypeHref(type)}/${item.id}`;
+  const { openItem } = useItemDrawer();
 
   return (
     <Card
@@ -30,12 +31,13 @@ export function ItemCard({ item }: ItemCardProps) {
             label={type.name}
             className="size-4 shrink-0"
           />
-          <Link
-            href={href}
-            className="truncate after:absolute after:inset-0"
+          <button
+            type="button"
+            onClick={() => openItem(item.id)}
+            className="truncate text-left after:absolute after:inset-0"
           >
             {item.title}
-          </Link>
+          </button>
           {item.isPinned ? (
             <Pin
               role="img"

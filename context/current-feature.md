@@ -1,20 +1,52 @@
 # Current Feature
 
 <!-- Feature Name -->
+Item Drawer
 
 ## Status
 
 <!-- Not Started|In Progress|Completed -->
 
-Not Started
+In Progress
 
 ## Goals
 
 <!-- Goals & requirements -->
 
+- Right-side slide-in drawer (shadcn `Sheet`, opens from the right) as the item detail view — no separate item page
+- Clicking an `ItemCard` opens the drawer with that item's full data, on both the dashboard and `/items/[type]` list pages
+- Action bar: Favorite (star, yellow when active), Pin, Copy, Edit (pencil), Delete (trash, right-aligned) — layout per the reference screenshot
+- Drawer body for now is just the details display (title, type/tags badges, description, content, tags, collections, created/updated dates) — code editor and other item-specific extras are a later feature
+- Client wrapper component holds the open/selected-item drawer state, since the pages that render `ItemCard` are server components
+- Card data (title, description, tags, etc.) keeps being fetched by the server component as today
+- Full item detail (content, collections, language, etc.) is fetched on click, not bundled into the card fetch — should feel snappy, no page navigation
+- Drawer shows a skeleton/loading state while the detail fetch is in flight
+
 ## Notes
 
 <!-- Any extra notes -->
+Spec: `context/features/item-drawer-spec.md`
+
+- Reference screenshot: `context/screenshots/dashboard-ui-drawer.png`
+- Spec names the detail query function `lib/db/items.ts` and a `/api/items/[id]` route calling it with an auth check. Per `CLAUDE.md`'s one-data-layer-per-feature rule (and the precedent set by every prior spec that named a `src/lib/db/*.ts` path — dashboard-collections, dashboard-items, stats-sidebar, item-list-view), the query function should live in `src/features/items/lib/items.ts` instead, with the API route just calling it — confirm this deviation during `start`/`review` rather than creating a new `src/lib/db/` module.
+- Existing `/items/[type]` and dashboard pages already scope every item query to the signed-in user (mostly still via `DEMO_USER_EMAIL`, per `CLAUDE.md`'s Deliberate current state note) — the new single-item detail query and its API route need the same scoping/auth check so one user can't fetch another's item by id.
+
+### Implementation notes (from `start`)
+
+- `getItemById` in `src/features/items/lib/items.ts` follows the existing convention exactly: scoped through the same `OWNED_BY_CURRENT_USER` (`DEMO_USER_EMAIL`) predicate every other query in that file uses, not the real session — consistent with the rest of the file, not a new gap. `src/app/api/items/[id]/route.ts` adds a real `auth()` check on top (401 with no session) per the spec's explicit "auth check" ask, even though the query itself doesn't use the session's id yet.
+- `ItemCard`/`ItemRow` became client components: the `<Link href=".../id">` (which pointed at the deliberately-unbuilt `/items/[type]/[id]` page) is now a `<button onClick={() => openItem(item.id)}>` with the same `after:absolute after:inset-0` full-card hit target. `getItemTypeHref` is no longer used by either component (still used by the sidebar).
+- New `ItemDrawerProvider`/`useItemDrawer` (`src/features/items/components/`) is a context provider wrapping `AppShell`'s content, so every page under the shell gets drawer support with no prop-drilling; `ItemDrawer` itself does the `/api/items/[id]` fetch and renders the skeleton while loading.
+- Loading state is derived (`loadedId !== itemId`) rather than reset with a synchronous `setState` at the top of the fetch effect — the latter tripped the `react-hooks/set-state-in-effect` lint rule.
+- Action bar matches the screenshot's five buttons. Favorite/Pin/Edit/Delete are visual-only (no onClick wiring) — same precedent as `TopBar`'s unwired "New Collection"/"New Item" buttons — since the spec scopes this feature to "the drawer details display" and defers mutations. Copy is wired for real (`navigator.clipboard.writeText`, client-side only, no backend) since it's a pure detail-view affordance, not a mutation.
+### Review
+
+- Caught and fixed during review: a failed detail fetch left the drawer stuck on the skeleton forever (the toast fired, but nothing moved `isLoading` to `false` without a successful `item`). Added a `loadError` state alongside `loadedId`/`fetchedItem` so the loading/error/loaded states are fully derived and mutually exclusive; re-verified build/lint/tests pass and the 404 path returns the expected shape live.
+- Architecture conformance checks (barrel-only cross-feature imports, no component touching Prisma/mock-data directly, no `items` → `collections` reverse edge, no stray `tailwind.config.*`) all clean.
+- Goal-by-goal: all 8 goals met. One naming nuance worth flagging, not a gap — the spec says "Clicking an ItemCard opens the drawer," but the dashboard's Pinned/Recent sections render `ItemRow`, not `ItemCard`; both were wired to open the drawer, which is what "works on both the dashboard and `/items/[type]`" actually requires.
+- Playwright reconnected mid-review and confirmed the previously-open gap: signed in as the seeded demo user, clicked a `Snippets` item card (`useDebounce`) — drawer opens from the right with correct title/type/tags, Favorite and Pin both showing `aria-pressed` correctly against the item's real `isFavorite`/`isPinned`, code content, collection badge, and dates, matching the reference screenshot's layout. Switched to a second item (`useLocalStorage`) and confirmed the drawer's data fully swapped (not stale) and the action-bar states updated (Pin no longer pressed). Clicked Copy with no console errors. Closed via the X button and confirmed the list underneath was untouched. Then from `/dashboard`, clicked a `Recent` `ItemRow` (a URL-type item, "Tailwind CSS Documentation") and confirmed the drawer rendered the URL section (clickable link) instead of a content code block, with no leftover "Content" heading — the conditional sections render correctly per item shape.
+- Post-review fix 1: the drawer could be horizontally scrolled, reported after review closed. Root cause was two-fold — the `Sheet` primitive's own `data-[side=right]:sm:max-w-sm` cap wasn't actually overridden by the drawer's original `sm:max-w-lg` (different variant-modifier chain, so `tailwind-merge` didn't treat them as the same group and the base class kept winning in the cascade), and the content wrapper had no `min-w-0`, so a wide `<pre>` block stretched the whole flex column instead of scrolling within itself. Fixed by matching the exact `data-[side=right]:` modifier chain (now `data-[side=right]:sm:max-w-lg data-[side=right]:lg:max-w-xl data-[side=right]:xl:max-w-2xl`, scaling wider on larger screens per the ask), adding `overflow-x-hidden` on `SheetContent`, and `min-w-0` on the content column. Verified live at 1024px (`lg` tier) and 1920px (`xl` tier) with both a short snippet and a long multi-line one — no scrollbar anywhere outside the code block itself, which still scrolls internally as intended for lines wider than the panel.
+- Post-review fix 2: with the drawer now wider on large screens, `ml-auto` on the Delete button (used to right-align it per the spec) created a large, isolated gap between it and the rest of the action bar instead of the tight grouping the reference screenshot shows; and on mobile, the same `overflow-x-hidden` that fixed the scroll bug meant the unwrapped 5-button row (with text labels) clipped Delete off-screen with no way to reach it. Fixed by: wrapping each button's label in `<span className="hidden sm:inline">` so icons stay always visible but labels only show at `sm:`+ (matching the same breakpoint the `Sheet` primitive already uses for its own width jump), replacing `ml-auto` with a `Separator` between Copy and Edit so Edit+Delete stay grouped together with a visual break rather than a large empty gap, and adding `flex-wrap` to the action row as a defensive fallback. Verified live at 1920px (grouped, no isolated gap) and 375px (all 5 icon buttons fit with room to spare, Delete fully visible and clickable).
+- Verdict: ready to complete.
 
 ## History
 

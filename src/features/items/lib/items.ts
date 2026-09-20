@@ -3,6 +3,7 @@ import "server-only";
 import type { Prisma } from "@/generated/prisma/client";
 import { matchesItemTypeSlug } from "@/features/items/lib/item-types";
 import type {
+  ItemDetail,
   ItemStats,
   ItemSummary,
   ItemType,
@@ -54,6 +55,62 @@ export async function getItemTypeBySlug(slug: string): Promise<ItemType | null> 
 
 export async function getItemsByType(typeId: string): Promise<ItemSummary[]> {
   return findItems({ typeId });
+}
+
+/** Everything the drawer's detail view renders for a single item. */
+const ITEM_DETAIL_SELECT = {
+  id: true,
+  title: true,
+  description: true,
+  contentType: true,
+  content: true,
+  url: true,
+  language: true,
+  fileName: true,
+  fileSize: true,
+  isFavorite: true,
+  isPinned: true,
+  createdAt: true,
+  updatedAt: true,
+  type: { select: { id: true, name: true, icon: true, color: true } },
+  tags: {
+    select: { tag: { select: { name: true } } },
+    orderBy: { tag: { name: "asc" } },
+  },
+  collection: { select: { id: true, name: true } },
+} satisfies Prisma.ItemSelect;
+
+/** The item drawer's detail fetch. Returns null for a missing or unowned id. */
+export async function getItemById(id: string): Promise<ItemDetail | null> {
+  const row = await prisma.item.findFirst({
+    where: { id, ...OWNED_BY_CURRENT_USER },
+    select: ITEM_DETAIL_SELECT,
+  });
+  if (!row) return null;
+
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    type: {
+      id: row.type.id,
+      name: row.type.name,
+      icon: row.type.icon ?? "File",
+      color: row.type.color,
+    },
+    tags: row.tags.map(({ tag }) => tag.name),
+    isFavorite: row.isFavorite,
+    isPinned: row.isPinned,
+    contentType: row.contentType,
+    content: row.content,
+    url: row.url,
+    language: row.language,
+    fileName: row.fileName,
+    fileSize: row.fileSize,
+    collection: row.collection,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  };
 }
 
 export async function getItemStats(): Promise<ItemStats> {

@@ -1,12 +1,13 @@
+"use client";
+
 import { Pin, Star } from "lucide-react";
-import Link from "next/link";
 import type { CSSProperties } from "react";
 
 import { ItemTypeIcon } from "@/features/items/components/ItemTypeIcon";
+import { useItemDrawer } from "@/features/items/components/ItemDrawerProvider";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { formatShortDate } from "@/features/items/lib/format";
-import { getItemTypeHref } from "@/features/items/lib/item-types";
 import type { ItemSummary } from "@/features/items/types";
 
 interface ItemRowProps {
@@ -15,8 +16,7 @@ interface ItemRowProps {
 
 export function ItemRow({ item }: ItemRowProps) {
   const { type } = item;
-  // Item pages sit under their type listing so they cannot collide with it.
-  const href = `${getItemTypeHref(type)}/${item.id}`;
+  const { openItem } = useItemDrawer();
 
   return (
     <Card
@@ -33,12 +33,13 @@ export function ItemRow({ item }: ItemRowProps) {
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className="flex items-center gap-1.5">
-          <Link
-            href={href}
-            className="truncate font-medium after:absolute after:inset-0"
+          <button
+            type="button"
+            onClick={() => openItem(item.id)}
+            className="truncate text-left font-medium after:absolute after:inset-0"
           >
             {item.title}
-          </Link>
+          </button>
           {item.isPinned ? (
             <Pin
               role="img"
