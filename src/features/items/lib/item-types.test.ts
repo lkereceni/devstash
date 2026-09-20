@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import {
   getItemTypeHref,
+  isContentEditableItemType,
+  isLanguageEditableItemType,
   isProItemType,
+  isUrlEditableItemType,
   matchesItemTypeSlug,
 } from "@/features/items/lib/item-types";
 import type { ItemTypeSummary } from "@/features/items/types";
@@ -43,5 +46,39 @@ describe("isProItemType", () => {
 
   it("does not flag a non-Pro type", () => {
     expect(isProItemType(makeType({ name: "Snippets" }))).toBe(false);
+  });
+});
+
+describe("isContentEditableItemType", () => {
+  it("flags the text-content types", () => {
+    expect(isContentEditableItemType(makeType({ name: "Snippets" }))).toBe(true);
+    expect(isContentEditableItemType(makeType({ name: "Prompts" }))).toBe(true);
+    expect(isContentEditableItemType(makeType({ name: "Commands" }))).toBe(true);
+    expect(isContentEditableItemType(makeType({ name: "Notes" }))).toBe(true);
+  });
+
+  it("does not flag a type with no content field", () => {
+    expect(isContentEditableItemType(makeType({ name: "Links" }))).toBe(false);
+  });
+});
+
+describe("isLanguageEditableItemType", () => {
+  it("flags the types with a language field", () => {
+    expect(isLanguageEditableItemType(makeType({ name: "Snippets" }))).toBe(true);
+    expect(isLanguageEditableItemType(makeType({ name: "Commands" }))).toBe(true);
+  });
+
+  it("does not flag a type with no language field", () => {
+    expect(isLanguageEditableItemType(makeType({ name: "Notes" }))).toBe(false);
+  });
+});
+
+describe("isUrlEditableItemType", () => {
+  it("flags Links", () => {
+    expect(isUrlEditableItemType(makeType({ name: "Links" }))).toBe(true);
+  });
+
+  it("does not flag a type with no URL field", () => {
+    expect(isUrlEditableItemType(makeType({ name: "Snippets" }))).toBe(false);
   });
 });

@@ -40,6 +40,32 @@ export function isProItemType(type: ItemTypeSummary): boolean {
   return PRO_ITEM_TYPE_NAMES.has(type.name);
 }
 
+/**
+ * Which type-specific fields the edit form shows for a given item type. There
+ * is no column for this on `item_types`, so — same as `PRO_ITEM_TYPE_NAMES` —
+ * the built-in types are listed by name until a richer type model lands.
+ */
+const CONTENT_EDITABLE_TYPE_NAMES = new Set([
+  "Snippets",
+  "Prompts",
+  "Commands",
+  "Notes",
+]);
+const LANGUAGE_EDITABLE_TYPE_NAMES = new Set(["Snippets", "Commands"]);
+const URL_EDITABLE_TYPE_NAMES = new Set(["Links"]);
+
+export function isContentEditableItemType(type: ItemTypeSummary): boolean {
+  return CONTENT_EDITABLE_TYPE_NAMES.has(type.name);
+}
+
+export function isLanguageEditableItemType(type: ItemTypeSummary): boolean {
+  return LANGUAGE_EDITABLE_TYPE_NAMES.has(type.name);
+}
+
+export function isUrlEditableItemType(type: ItemTypeSummary): boolean {
+  return URL_EDITABLE_TYPE_NAMES.has(type.name);
+}
+
 /** Derives the `/items/[type]` route segment from a type's name. */
 function slugifyItemTypeName(name: string): string {
   return name

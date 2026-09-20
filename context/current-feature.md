@@ -1,20 +1,40 @@
 # Current Feature
 
-<!-- Feature Name -->
+Item Drawer — Edit Mode
 
 ## Status
 
 <!-- Not Started|In Progress|Completed -->
 
-Not Started
+In Progress
 
 ## Goals
 
 <!-- Goals & requirements -->
 
+- Edit button in the item drawer's action bar toggles the drawer into inline edit mode (same drawer, fields become inputs)
+- In edit mode, the action bar is replaced with Save and Cancel buttons
+- Cancel discards changes and returns to view mode
+- Save persists changes via a server action, returns to view mode, refreshes the drawer data, and calls `router.refresh()` so the underlying card list reflects the change
+- Toast on save success or error
+- Editable for all types: Title (text input, required), Description (textarea, optional), Tags (comma-separated text input, converted to a tag array on save)
+- Editable per type: Content (textarea) for snippet/prompt/command/note; Language (text input) for snippet/command; URL (text input) for link
+- Non-editable, display only in edit mode: item type, collections, created/updated dates
+- Client-side: disable Save when title is empty
+- Server action `updateItem(itemId, data)` follows the `{ success, data, error }` pattern — validates input with Zod, gets session via `auth()`, validates ownership, delegates the Prisma call to `lib/`, and returns the updated item detail so the drawer can refresh without a second fetch
+- Zod schema: `title` non-empty trimmed string; `description`/`content`/`url`/`language` string or null, optional (`url` valid URL string when present); `tags` array of trimmed non-empty strings; errors returned in `{ success: false, error }` for the client to display
+- Tag handling on update: disconnect all existing tags, connect-or-create the new set
+
 ## Notes
 
 <!-- Any extra notes -->
+
+Spec: `context/features/item-drawer-edit-spec.md`
+
+- Spec names `src/actions/items.ts` and `lib/db/items.ts` for the server action and query function — every prior items feature has instead used `src/features/items/actions.ts` (new file) and `src/features/items/lib/items.ts` (existing file, already the sole Prisma access point for this feature) per `CLAUDE.md`'s one-data-layer-per-feature rule and barrel-export convention. Expect `start` to follow the established convention over the spec's literal paths, as every previous feature in this project's history has.
+- Builds on the existing view-mode drawer (`src/features/items/components/ItemDrawer.tsx`, `getItemById` in `items/lib/items.ts`, `GET /api/items/[id]`) — the Edit button there is currently visual-only with no `onClick`.
+- Existing `OWNED_BY_CURRENT_USER` (`DEMO_USER_EMAIL`) scoping gap in `items/lib/items.ts` is a known, separate issue (tracked in `CLAUDE.md`'s Deliberate current state) — the spec's "validates ownership" should follow that file's existing pattern rather than fixing the gap as part of this feature, unless told otherwise.
+- No content textarea code editor — plain textarea, per the spec.
 
 ## History
 

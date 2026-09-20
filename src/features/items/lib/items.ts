@@ -80,14 +80,9 @@ const ITEM_DETAIL_SELECT = {
   collection: { select: { id: true, name: true } },
 } satisfies Prisma.ItemSelect;
 
-/** The item drawer's detail fetch. Returns null for a missing or unowned id. */
-export async function getItemById(id: string): Promise<ItemDetail | null> {
-  const row = await prisma.item.findFirst({
-    where: { id, ...OWNED_BY_CURRENT_USER },
-    select: ITEM_DETAIL_SELECT,
-  });
-  if (!row) return null;
+type ItemDetailRow = Prisma.ItemGetPayload<{ select: typeof ITEM_DETAIL_SELECT }>;
 
+function mapItemDetail(row: ItemDetailRow): ItemDetail {
   return {
     id: row.id,
     title: row.title,
@@ -111,6 +106,67 @@ export async function getItemById(id: string): Promise<ItemDetail | null> {
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
   };
+}
+
+/** The item drawer's detail fetch. Returns null for a missing or unowned id. */
+export async function getItemById(id: string): Promise<ItemDetail | null> {
+  const row = await prisma.item.findFirst({
+    where: { id, ...OWNED_BY_CURRENT_USER },
+    select: ITEM_DETAIL_SELECT,
+  });
+  if (!row) return null;
+
+  return mapItemDetail(row);
+}
+
+export interface UpdateItemData {
+  title: string;
+  description: string | null;
+  content: string | null;
+  url: string | null;
+  language: string | null;
+  tags: string[];
+}
+
+/**
+ * The item drawer's edit-mode save. Returns null for a missing or unowned id.
+ * Tags are replaced wholesale — disconnect everything the item currently
+ * carries, then connect-or-create the submitted set, same as the seed script.
+ */
+export async function updateItem(
+  id: string,
+  data: UpdateItemData
+): Promise<ItemDetail | null> {
+  const existing = await prisma.item.findFirst({
+    where: { id, ...OWNED_BY_CURRENT_USER },
+    select: { userId: true },
+  });
+  if (!existing) return null;
+
+  const row = await prisma.item.update({
+    where: { id },
+    data: {
+      title: data.title,
+      description: data.description,
+      content: data.content,
+      url: data.url,
+      language: data.language,
+      tags: {
+        deleteMany: {},
+        create: data.tags.map((name) => ({
+          tag: {
+            connectOrCreate: {
+              where: { userId_name: { userId: existing.userId, name } },
+              create: { name, userId: existing.userId },
+            },
+          },
+        })),
+      },
+    },
+    select: ITEM_DETAIL_SELECT,
+  });
+
+  return mapItemDetail(row);
 }
 
 export async function getItemStats(): Promise<ItemStats> {
