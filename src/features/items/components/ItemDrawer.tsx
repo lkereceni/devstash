@@ -6,6 +6,17 @@ import { Check, Copy, Pencil, Pin, Star, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { ItemTypeIcon } from "@/features/items/components/ItemTypeIcon";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +31,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
-import { updateItemAction } from "@/features/items/actions";
+import { deleteItemAction, updateItemAction } from "@/features/items/actions";
 import { formatLongDate } from "@/features/items/lib/format";
 import {
   isContentEditableItemType,
@@ -65,6 +76,8 @@ export function ItemDrawer({ itemId, open, onOpenChange }: ItemDrawerProps) {
   const [editContent, setEditContent] = useState("");
   const [editLanguage, setEditLanguage] = useState("");
   const [editUrl, setEditUrl] = useState("");
+
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (!open || !itemId) return;
@@ -152,6 +165,23 @@ export function ItemDrawer({ itemId, open, onOpenChange }: ItemDrawerProps) {
     setItem(result.data);
     setEditingItemId(null);
     toast.success("Item updated");
+    router.refresh();
+  }
+
+  async function handleDeleteConfirm() {
+    if (!item) return;
+
+    setIsDeleting(true);
+    const result = await deleteItemAction(item.id);
+    setIsDeleting(false);
+
+    if (!result.success) {
+      toast.error(result.error);
+      return;
+    }
+
+    onOpenChange(false);
+    toast.success("Item deleted");
     router.refresh();
   }
 
@@ -257,15 +287,41 @@ export function ItemDrawer({ itemId, open, onOpenChange }: ItemDrawerProps) {
                       <Pencil />
                       <span className="hidden sm:inline">Edit</span>
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      aria-label="Delete"
-                      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                    >
-                      <Trash2 />
-                      <span className="hidden sm:inline">Delete</span>
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          aria-label="Delete"
+                          className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        >
+                          <Trash2 />
+                          <span className="hidden sm:inline">Delete</span>
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete this item?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This permanently deletes &ldquo;{item.title}&rdquo;. This
+                            cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel disabled={isDeleting}>
+                            Cancel
+                          </AlertDialogCancel>
+                          <AlertDialogAction
+                            variant="destructive"
+                            disabled={isDeleting}
+                            onClick={handleDeleteConfirm}
+                          >
+                            {isDeleting ? <Spinner /> : null}
+                            {isDeleting ? "Deleting…" : "Delete"}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </>
                 )}
               </div>

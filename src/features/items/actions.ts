@@ -3,12 +3,14 @@
 import { z } from "zod";
 
 import { auth } from "@/auth";
-import { updateItem } from "@/features/items/lib/items";
+import { deleteItem, updateItem } from "@/features/items/lib/items";
 import type { ItemDetail } from "@/features/items/types";
 
 type UpdateItemResult =
   | { success: true; data: ItemDetail }
   | { success: false; error: string };
+
+type DeleteItemResult = { success: true } | { success: false; error: string };
 
 const updateItemSchema = z.object({
   title: z.string().trim().min(1, "Title is required"),
@@ -46,4 +48,18 @@ export async function updateItemAction(
   }
 
   return { success: true, data: item };
+}
+
+export async function deleteItemAction(itemId: string): Promise<DeleteItemResult> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return { success: false, error: "You must be signed in." };
+  }
+
+  const deleted = await deleteItem(itemId);
+  if (!deleted) {
+    return { success: false, error: "Item not found." };
+  }
+
+  return { success: true };
 }

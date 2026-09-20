@@ -169,6 +169,22 @@ export async function updateItem(
   return mapItemDetail(row);
 }
 
+/**
+ * The item drawer's delete action. Returns false for a missing or unowned id
+ * rather than throwing, so the caller can turn it into a user-facing error.
+ * `ItemTag` cascades on `Item` delete, so tags need no separate cleanup.
+ */
+export async function deleteItem(id: string): Promise<boolean> {
+  const existing = await prisma.item.findFirst({
+    where: { id, ...OWNED_BY_CURRENT_USER },
+    select: { id: true },
+  });
+  if (!existing) return false;
+
+  await prisma.item.delete({ where: { id } });
+  return true;
+}
+
 export async function getItemStats(): Promise<ItemStats> {
   const [total, favorites] = await Promise.all([
     prisma.item.count({ where: OWNED_BY_CURRENT_USER }),

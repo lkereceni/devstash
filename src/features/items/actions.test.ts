@@ -11,11 +11,15 @@ const mockAuth = vi.hoisted(() => vi.fn<() => Promise<Session | null>>());
 const mockUpdateItem = vi.hoisted(() =>
   vi.fn<(id: string, data: UpdateItemData) => Promise<ItemDetail | null>>()
 );
+const mockDeleteItem = vi.hoisted(() => vi.fn<(id: string) => Promise<boolean>>());
 
 vi.mock("@/auth", () => ({ auth: mockAuth }));
-vi.mock("@/features/items/lib/items", () => ({ updateItem: mockUpdateItem }));
+vi.mock("@/features/items/lib/items", () => ({
+  updateItem: mockUpdateItem,
+  deleteItem: mockDeleteItem,
+}));
 
-import { updateItemAction } from "@/features/items/actions";
+import { deleteItemAction, updateItemAction } from "@/features/items/actions";
 
 function sessionFor(userId: string): Session {
   return { user: { id: userId }, expires: "2099-01-01T00:00:00.000Z" };
@@ -108,5 +112,36 @@ describe("updateItemAction", () => {
 
     expect(mockUpdateItem).toHaveBeenCalledWith("item-1", validInput());
     expect(result).toEqual({ success: true, data: updated });
+  });
+});
+
+describe("deleteItemAction", () => {
+  it("rejects when there is no session", async () => {
+    mockAuth.mockResolvedValue(null);
+
+    const result = await deleteItemAction("item-1");
+
+    expect(result).toEqual({ success: false, error: "You must be signed in." });
+    expect(mockDeleteItem).not.toHaveBeenCalled();
+  });
+
+  it("reports an error when the item is missing or not owned by the caller", async () => {
+    mockAuth.mockResolvedValue(sessionFor("user-1"));
+    mockDeleteItem.mockResolvedValue(false);
+
+    const result = await deleteItemAction("item-1");
+
+    expect(mockDeleteItem).toHaveBeenCalledWith("item-1");
+    expect(result).toEqual({ success: false, error: "Item not found." });
+  });
+
+  it("deletes the item and reports success", async () => {
+    mockAuth.mockResolvedValue(sessionFor("user-1"));
+    mockDeleteItem.mockResolvedValue(true);
+
+    const result = await deleteItemAction("item-1");
+
+    expect(mockDeleteItem).toHaveBeenCalledWith("item-1");
+    expect(result).toEqual({ success: true });
   });
 });
