@@ -1,20 +1,34 @@
 # Current Feature
 
-<!-- Feature Name -->
+Delete Item
 
 ## Status
 
 <!-- Not Started|In Progress|Completed -->
 
-Not Started
+In Progress
 
 ## Goals
 
 <!-- Goals & requirements -->
 
+- Wire up the item drawer's existing Delete button (currently visual-only, no `onClick`) to actually delete the item
+- Clicking Delete opens a shadcn `AlertDialog` confirmation ("Delete this item?" / cannot be undone) before anything is deleted — same pattern as `DeleteAccountCard`
+- Confirming calls a new server action that deletes the item, then closes the drawer, shows a success toast, and refreshes the underlying card list (`router.refresh()`) so the deleted item disappears from the grid/rows without a manual reload
+- Cancelling the dialog does nothing — item stays, drawer stays open in view mode
+- An error deleting (e.g. item already gone) shows an error toast and leaves the drawer open rather than closing it
+- Delete button/dialog shows a pending state (spinner, disabled) while the delete is in flight, matching `DeleteAccountCard`'s `isDeleting` pattern
+
 ## Notes
 
 <!-- Any extra notes -->
+
+- Inline description, no spec file.
+- New `deleteItemAction(itemId)` belongs in the existing @src/features/items/actions.ts (not a new file) alongside `updateItemAction`, following the `{ success, error }` pattern `deleteAccountAction` uses — checks `auth()` for a session, delegates to a new `deleteItem` in @src/features/items/lib/items.ts.
+- `deleteItem` should scope its delete through the same `OWNED_BY_CURRENT_USER` (`DEMO_USER_EMAIL`) predicate every other query in that file already uses — the file's known scoping gap (tracked in `CLAUDE.md`'s Deliberate current state), not something to fix as part of this feature.
+- `Item` → `ItemTag` cascades on delete in the schema (`onDelete: Cascade`), so deleting the item alone is enough — no manual tag cleanup needed.
+- Scope: only the drawer's Delete button. `ItemCard`/`ItemRow` don't currently have their own delete affordance in the list views, and adding one isn't part of this ask.
+- Use the shadcn `AlertDialog` primitive already added to the project (`src/components/ui/alert-dialog.tsx`), not a new confirmation component.
 
 ## History
 
