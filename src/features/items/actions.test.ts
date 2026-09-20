@@ -1,25 +1,35 @@
 import type { Session } from "next-auth";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { UpdateItemData } from "@/features/items/lib/items";
-import type { ItemDetail } from "@/features/items/types";
+import type { CreateItemData, UpdateItemData } from "@/features/items/lib/items";
+import type { ItemDetail, ItemType } from "@/features/items/types";
 
 // `auth`'s real type is NextAuth's overloaded function (plain call, or used
 // as middleware), which `vi.mocked()` can't infer cleanly — so the mocks are
 // declared with their own simple signatures instead of derived from it.
 const mockAuth = vi.hoisted(() => vi.fn<() => Promise<Session | null>>());
+const mockCreateItem = vi.hoisted(() =>
+  vi.fn<(data: CreateItemData) => Promise<ItemDetail>>()
+);
 const mockUpdateItem = vi.hoisted(() =>
   vi.fn<(id: string, data: UpdateItemData) => Promise<ItemDetail | null>>()
 );
 const mockDeleteItem = vi.hoisted(() => vi.fn<(id: string) => Promise<boolean>>());
+const mockGetItemTypes = vi.hoisted(() => vi.fn<() => Promise<ItemType[]>>());
 
 vi.mock("@/auth", () => ({ auth: mockAuth }));
 vi.mock("@/features/items/lib/items", () => ({
+  createItem: mockCreateItem,
   updateItem: mockUpdateItem,
   deleteItem: mockDeleteItem,
+  getItemTypes: mockGetItemTypes,
 }));
 
-import { deleteItemAction, updateItemAction } from "@/features/items/actions";
+import {
+  createItemAction,
+  deleteItemAction,
+  updateItemAction,
+} from "@/features/items/actions";
 
 function sessionFor(userId: string): Session {
   return { user: { id: userId }, expires: "2099-01-01T00:00:00.000Z" };
@@ -27,6 +37,48 @@ function sessionFor(userId: string): Session {
 
 function validInput(overrides: Partial<UpdateItemData> = {}): UpdateItemData {
   return {
+    title: "useDebounce",
+    description: "Delays a value until it settles",
+    content: "export function useDebounce() {}",
+    url: null,
+    language: "typescript",
+    tags: ["hooks", "react"],
+    ...overrides,
+  };
+}
+
+const SNIPPETS_TYPE: ItemType = {
+  id: "type-snippets",
+  name: "Snippets",
+  icon: "Code",
+  color: "#3b82f6",
+  isSystem: true,
+  itemCount: 4,
+};
+
+const LINKS_TYPE: ItemType = {
+  id: "type-links",
+  name: "Links",
+  icon: "Link",
+  color: "#22c55e",
+  isSystem: true,
+  itemCount: 6,
+};
+
+const FILES_TYPE: ItemType = {
+  id: "type-files",
+  name: "Files",
+  icon: "File",
+  color: "#a855f7",
+  isSystem: true,
+  itemCount: 0,
+};
+
+function validCreateInput(
+  overrides: Partial<CreateItemData> = {}
+): CreateItemData {
+  return {
+    typeId: SNIPPETS_TYPE.id,
     title: "useDebounce",
     description: "Delays a value until it settles",
     content: "export function useDebounce() {}",
@@ -61,6 +113,71 @@ function itemDetailFor(overrides: Partial<ItemDetail> = {}): ItemDetail {
 
 beforeEach(() => {
   vi.resetAllMocks();
+  mockGetItemTypes.mockResolvedValue([SNIPPETS_TYPE, LINKS_TYPE, FILES_TYPE]);
+});
+
+describe("createItemAction", () => {
+  it("rejects when there is no session", async () => {
+    mockAuth.mockResolvedValue(null);
+
+    const result = await createItemAction(validCreateInput());
+
+    expect(result).toEqual({ success: false, error: "You must be signed in." });
+    expect(mockCreateItem).not.toHaveBeenCalled();
+  });
+
+  it("rejects an empty title", async () => {
+    mockAuth.mockResolvedValue(sessionFor("user-1"));
+
+    const result = await createItemAction(validCreateInput({ title: "  " }));
+
+    expect(result).toEqual({ success: false, error: "Title is required" });
+    expect(mockCreateItem).not.toHaveBeenCalled();
+  });
+
+  it("rejects a type that isn't creatable", async () => {
+    mockAuth.mockResolvedValue(sessionFor("user-1"));
+
+    const result = await createItemAction(
+      validCreateInput({ typeId: FILES_TYPE.id })
+    );
+
+    expect(result).toEqual({ success: false, error: "Select a valid item type." });
+    expect(mockCreateItem).not.toHaveBeenCalled();
+  });
+
+  it("rejects an unknown type id", async () => {
+    mockAuth.mockResolvedValue(sessionFor("user-1"));
+
+    const result = await createItemAction(
+      validCreateInput({ typeId: "not-a-real-type" })
+    );
+
+    expect(result).toEqual({ success: false, error: "Select a valid item type." });
+    expect(mockCreateItem).not.toHaveBeenCalled();
+  });
+
+  it("requires a URL when the type is Links", async () => {
+    mockAuth.mockResolvedValue(sessionFor("user-1"));
+
+    const result = await createItemAction(
+      validCreateInput({ typeId: LINKS_TYPE.id, url: null })
+    );
+
+    expect(result).toEqual({ success: false, error: "URL is required." });
+    expect(mockCreateItem).not.toHaveBeenCalled();
+  });
+
+  it("delegates to createItem with the parsed data and returns the created item", async () => {
+    mockAuth.mockResolvedValue(sessionFor("user-1"));
+    const created = itemDetailFor({ title: "useDebounce" });
+    mockCreateItem.mockResolvedValue(created);
+
+    const result = await createItemAction(validCreateInput());
+
+    expect(mockCreateItem).toHaveBeenCalledWith(validCreateInput());
+    expect(result).toEqual({ success: true, data: created });
+  });
 });
 
 describe("updateItemAction", () => {

@@ -1,11 +1,20 @@
+"use client";
+
 import { FolderPlus, Plus, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+// Imported by full path rather than the feature barrel: the barrel also
+// re-exports the server-only `lib/items.ts` functions, and Next's client
+// boundary check bundles a barrel's entire re-export graph into any client
+// component that imports from it at all — confirmed live via a failed build.
+import { useItemCreateDialog } from "@/features/items/components/ItemCreateDialogClient";
 
 export function TopBar() {
+  const { openCreateDialog } = useItemCreateDialog();
+
   return (
     <header className="flex h-16 shrink-0 items-center gap-3 border-b px-4 sm:px-6">
       <SidebarTrigger className="-ml-1.5" />
@@ -30,7 +39,7 @@ export function TopBar() {
           <FolderPlus aria-hidden />
           <span className="hidden md:inline">New Collection</span>
         </Button>
-        <Button size="lg" aria-label="New Item">
+        <Button size="lg" aria-label="New Item" onClick={openCreateDialog}>
           <Plus aria-hidden />
           <span className="hidden md:inline">New Item</span>
         </Button>

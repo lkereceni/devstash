@@ -66,6 +66,23 @@ export function isUrlEditableItemType(type: ItemTypeSummary): boolean {
   return URL_EDITABLE_TYPE_NAMES.has(type.name);
 }
 
+/**
+ * Types the "New Item" dialog can create. Files and Images need upload
+ * handling the create form doesn't have yet, so they're excluded here even
+ * though they're valid types elsewhere (sidebar, edit mode).
+ */
+const CREATABLE_TYPE_NAMES = new Set([
+  "Snippets",
+  "Prompts",
+  "Commands",
+  "Notes",
+  "Links",
+]);
+
+export function isCreatableItemType(type: ItemTypeSummary): boolean {
+  return CREATABLE_TYPE_NAMES.has(type.name);
+}
+
 /** Derives the `/items/[type]` route segment from a type's name. */
 function slugifyItemTypeName(name: string): string {
   return name
