@@ -5,6 +5,7 @@ import { AppSidebar } from "@/components/layout/AppSidebar";
 import { TopBar } from "@/components/layout/TopBar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ItemDrawerProvider } from "@/features/items";
 
 /** The sidebar + top bar chrome shared by every authenticated route. */
 export async function AppShell({ children }: { children: ReactNode }) {
@@ -17,7 +18,9 @@ export async function AppShell({ children }: { children: ReactNode }) {
         <AppSidebar />
         <SidebarInset className="h-svh overflow-hidden">
           <TopBar />
-          <div className="flex-1 overflow-y-auto p-8">{children}</div>
+          <ItemDrawerProvider>
+            <div className="flex-1 overflow-y-auto p-8">{children}</div>
+          </ItemDrawerProvider>
         </SidebarInset>
       </SidebarProvider>
     </TooltipProvider>
