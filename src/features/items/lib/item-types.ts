@@ -67,6 +67,18 @@ export function isUrlEditableItemType(type: ItemTypeSummary): boolean {
 }
 
 /**
+ * Types whose Content field renders through the Monaco-backed `CodeEditor`
+ * instead of a plain `Textarea`. A separate name list from
+ * `LANGUAGE_EDITABLE_TYPE_NAMES` on purpose — "is code" and "has a language
+ * field" are different questions that just happen to agree today.
+ */
+const CODE_ITEM_TYPE_NAMES = new Set(["Snippets", "Commands"]);
+
+export function isCodeItemType(type: ItemTypeSummary): boolean {
+  return CODE_ITEM_TYPE_NAMES.has(type.name);
+}
+
+/**
  * Types the "New Item" dialog can create. Files and Images need upload
  * handling the create form doesn't have yet, so they're excluded here even
  * though they're valid types elsewhere (sidebar, edit mode).

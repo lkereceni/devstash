@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Check, Copy, Pencil, Pin, Star, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
+import { CodeEditor } from "@/features/items/components/CodeEditor";
 import { ItemTypeIcon } from "@/features/items/components/ItemTypeIcon";
 import {
   AlertDialog,
@@ -34,6 +35,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { deleteItemAction, updateItemAction } from "@/features/items/actions";
 import { formatLongDate } from "@/features/items/lib/format";
 import {
+  isCodeItemType,
   isContentEditableItemType,
   isLanguageEditableItemType,
   isUrlEditableItemType,
@@ -352,14 +354,22 @@ export function ItemDrawer({ itemId, open, onOpenChange }: ItemDrawerProps) {
                   {isContentEditableItemType(item.type) ? (
                     <div className="flex flex-col gap-1.5">
                       <Label htmlFor="edit-content">Content</Label>
-                      <Textarea
-                        id="edit-content"
-                        className="min-h-32 font-mono text-xs"
-                        value={editContent}
-                        onChange={(event) =>
-                          setEditContent(event.target.value)
-                        }
-                      />
+                      {isCodeItemType(item.type) ? (
+                        <CodeEditor
+                          value={editContent}
+                          onChange={setEditContent}
+                          language={editLanguage}
+                        />
+                      ) : (
+                        <Textarea
+                          id="edit-content"
+                          className="min-h-32 font-mono text-xs"
+                          value={editContent}
+                          onChange={(event) =>
+                            setEditContent(event.target.value)
+                          }
+                        />
+                      )}
                     </div>
                   ) : null}
                   {isLanguageEditableItemType(item.type) ? (
@@ -406,9 +416,17 @@ export function ItemDrawer({ itemId, open, onOpenChange }: ItemDrawerProps) {
 
                   {item.content ? (
                     <DetailSection title="Content">
-                      <pre className="overflow-x-auto rounded-lg bg-muted p-3 font-mono text-xs">
-                        <code>{item.content}</code>
-                      </pre>
+                      {isCodeItemType(item.type) ? (
+                        <CodeEditor
+                          value={item.content}
+                          language={item.language}
+                          readOnly
+                        />
+                      ) : (
+                        <pre className="overflow-x-auto rounded-lg bg-muted p-3 font-mono text-xs">
+                          <code>{item.content}</code>
+                        </pre>
+                      )}
                     </DetailSection>
                   ) : null}
 
