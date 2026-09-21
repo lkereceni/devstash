@@ -25,7 +25,9 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { createItemAction } from "@/features/items/actions";
+import { CodeEditor } from "@/features/items/components/CodeEditor";
 import {
+  isCodeItemType,
   isContentEditableItemType,
   isLanguageEditableItemType,
   isUrlEditableItemType,
@@ -164,14 +166,24 @@ export function ItemCreateDialog({
           {selectedType && isContentEditableItemType(selectedType) ? (
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="create-content">Content</Label>
-              <Textarea
-                id="create-content"
-                className="min-h-32 font-mono text-xs"
-                value={form.content}
-                onChange={(event) =>
-                  setForm((prev) => ({ ...prev, content: event.target.value }))
-                }
-              />
+              {isCodeItemType(selectedType) ? (
+                <CodeEditor
+                  value={form.content}
+                  onChange={(content) =>
+                    setForm((prev) => ({ ...prev, content }))
+                  }
+                  language={form.language}
+                />
+              ) : (
+                <Textarea
+                  id="create-content"
+                  className="min-h-32 font-mono text-xs"
+                  value={form.content}
+                  onChange={(event) =>
+                    setForm((prev) => ({ ...prev, content: event.target.value }))
+                  }
+                />
+              )}
             </div>
           ) : null}
 
