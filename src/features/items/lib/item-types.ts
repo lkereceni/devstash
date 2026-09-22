@@ -79,6 +79,17 @@ export function isCodeItemType(type: ItemTypeSummary): boolean {
 }
 
 /**
+ * Types whose Content field renders through the `MarkdownEditor` instead of a
+ * plain `Textarea`. A separate name list from `CODE_ITEM_TYPE_NAMES` — the two
+ * are mutually exclusive subsets of `CONTENT_EDITABLE_TYPE_NAMES`.
+ */
+const MARKDOWN_ITEM_TYPE_NAMES = new Set(["Notes", "Prompts"]);
+
+export function isMarkdownItemType(type: ItemTypeSummary): boolean {
+  return MARKDOWN_ITEM_TYPE_NAMES.has(type.name);
+}
+
+/**
  * Types the "New Item" dialog can create. Files and Images need upload
  * handling the create form doesn't have yet, so they're excluded here even
  * though they're valid types elsewhere (sidebar, edit mode).

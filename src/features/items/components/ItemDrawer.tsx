@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { CodeEditor } from "@/features/items/components/CodeEditor";
 import { ItemTypeIcon } from "@/features/items/components/ItemTypeIcon";
+import { MarkdownEditor } from "@/features/items/components/MarkdownEditor";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,6 +39,7 @@ import {
   isCodeItemType,
   isContentEditableItemType,
   isLanguageEditableItemType,
+  isMarkdownItemType,
   isUrlEditableItemType,
 } from "@/features/items/lib/item-types";
 import type { ItemDetail } from "@/features/items/types";
@@ -360,6 +362,11 @@ export function ItemDrawer({ itemId, open, onOpenChange }: ItemDrawerProps) {
                           onChange={setEditContent}
                           language={editLanguage}
                         />
+                      ) : isMarkdownItemType(item.type) ? (
+                        <MarkdownEditor
+                          value={editContent}
+                          onChange={setEditContent}
+                        />
                       ) : (
                         <Textarea
                           id="edit-content"
@@ -422,6 +429,8 @@ export function ItemDrawer({ itemId, open, onOpenChange }: ItemDrawerProps) {
                           language={item.language}
                           readOnly
                         />
+                      ) : isMarkdownItemType(item.type) ? (
+                        <MarkdownEditor value={item.content} readOnly />
                       ) : (
                         <pre className="overflow-x-auto rounded-lg bg-muted p-3 font-mono text-xs">
                           <code>{item.content}</code>
