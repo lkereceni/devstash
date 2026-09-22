@@ -26,10 +26,12 @@ import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { createItemAction } from "@/features/items/actions";
 import { CodeEditor } from "@/features/items/components/CodeEditor";
+import { MarkdownEditor } from "@/features/items/components/MarkdownEditor";
 import {
   isCodeItemType,
   isContentEditableItemType,
   isLanguageEditableItemType,
+  isMarkdownItemType,
   isUrlEditableItemType,
 } from "@/features/items/lib/item-types";
 import type { ItemType } from "@/features/items/types";
@@ -173,6 +175,13 @@ export function ItemCreateDialog({
                     setForm((prev) => ({ ...prev, content }))
                   }
                   language={form.language}
+                />
+              ) : isMarkdownItemType(selectedType) ? (
+                <MarkdownEditor
+                  value={form.content}
+                  onChange={(content) =>
+                    setForm((prev) => ({ ...prev, content }))
+                  }
                 />
               ) : (
                 <Textarea
